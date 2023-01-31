@@ -1,38 +1,7 @@
-#include "tetromino.h"
 #include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include "test.h"
+#include "../src/tetromino.h"
 
-static unsigned int tested, passed;
-bool assert(bool b, const char* format, ...) { //{{{
-    va_list args;
-    va_start(args, format);
-
-    tested++;
-    if (!b) {
-        fprintf(stderr, "\033[91mFAIL:\033[0m ");
-        vfprintf(stderr, format, args);
-    }
-    else {
-        passed++;
-        printf("\033[92mPASS:\033[0m ");
-        vprintf(format, args);
-    }
-    va_end(args);
-    printf("\n");
-    return b;
-
-/*}}}*/ }
-
-void print_test_report() { //{{{
-    unsigned int failed = tested - passed;
-    printf("\033[93m%d TESTS\033[0m  /  \033[92m%d PASSED\033[0m", tested, passed);
-    if (failed) {
-        printf("  /  \033[91m%d FAILED\033[0m", failed);
-    }
-    printf("\n");
-/*}}}*/ }
 
 void tetromino_print_grid(tetromino_t t) { //{{{
     uint16_t grid = tetromino_get_grid(&t);
@@ -49,28 +18,11 @@ void tetromino_print_grid(tetromino_t t) { //{{{
     printf("\n");
 /*}}}*/}
 
-void print_binary(uint16_t n) { //{{{
-    printf("%d => ", n);
-    uint16_t mask = 1<<15;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            if (mask & n) printf("1");
-            else printf("0");
-            mask >>= 1;
-        }
-        printf(" ");
-    }
-    printf("\n");
-/*}}}*/}
-
 void test_tetromino_copy_and_rotate() { //{{{
-    for (int ti = 0; ti < 7; ++ti) {
-        tetromino_t t = TETROMINOS[ti];
+    for (int ti = TETROMINO_TYPE_NULL + 1; ti < TETROMINO_TYPE_QUANTITY; ++ti) {
+        tetromino_t t = {(enum tetromino_type_t)ti, 0};
 
-        const char type = tetromino_get_type_char(&t);
-        const char type2 = tetromino_get_type_char((tetromino_t *)&(TETROMINOS[ti]));
-
-        if (!assert(t.type == TETROMINOS[ti].type, "%c == %c", type, type2)) continue;
+        const char type_char = tetromino_get_type_char(&t);
 
         uint16_t grid,
                  expected_grid,
@@ -126,37 +78,37 @@ void test_tetromino_copy_and_rotate() { //{{{
 
         grid = tetromino_get_grid(&t);
         assert(grid == expected_grid,
-               "%c initial grid %d == %d", type, grid, expected_grid);
+               "%c initial grid %d == %d", type_char, grid, expected_grid);
 
         grid = tetromino_rotate_clockwise(&t);
         assert(grid == expected_grid_rotation90,
-               "%c 90deg clockwise %d == %d", type, grid, expected_grid_rotation90);
+               "%c 90deg clockwise %d == %d", type_char, grid, expected_grid_rotation90);
 
         grid = tetromino_rotate_clockwise(&t);
         assert(grid == expected_grid_rotation180,
-               "%c 180deg clockwise %d == %d", type, grid, expected_grid_rotation180);
+               "%c 180deg clockwise %d == %d", type_char, grid, expected_grid_rotation180);
 
         grid = tetromino_rotate_clockwise(&t);
         assert(grid == expected_grid_rotation270,
-               "%c 270deg clockwise %d == %d", type, grid, expected_grid_rotation270);
+               "%c 270deg clockwise %d == %d", type_char, grid, expected_grid_rotation270);
 
         grid = tetromino_rotate_clockwise(&t);
-        assert(grid == expected_grid, "%c 360deg clockwise == initial grid", type);
+        assert(grid == expected_grid, "%c 360deg clockwise == initial grid", type_char);
 
         grid = tetromino_rotate_counterclockwise(&t);
         assert(grid == expected_grid_rotation270,
-               "%c 270deg counter clockwise %d == %d", type, grid, expected_grid_rotation270);
+               "%c 270deg counter clockwise %d == %d", type_char, grid, expected_grid_rotation270);
 
         grid = tetromino_rotate_counterclockwise(&t);
         assert(grid == expected_grid_rotation180,
-               "%c 180deg counter clockwise %d == %d", type, grid, expected_grid_rotation180);
+               "%c 180deg counter clockwise %d == %d", type_char, grid, expected_grid_rotation180);
 
         grid = tetromino_rotate_counterclockwise(&t);
         assert(grid == expected_grid_rotation90,
-               "%c 90deg counter clockwise %d == %d", type, grid, expected_grid_rotation90);
+               "%c 90deg counter clockwise %d == %d", type_char, grid, expected_grid_rotation90);
 
         grid = tetromino_rotate_counterclockwise(&t);
-        assert(grid == expected_grid, "%c 360deg counter clockwise == initial grid", type);
+        assert(grid == expected_grid, "%c 360deg counter clockwise == initial grid", type_char);
 
         fprintf(stderr, "\n");
     }

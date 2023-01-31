@@ -13,15 +13,14 @@
                                                  ((uint16_t)0b##d1##d2##d3##d4) }
 
 
-enum tetromino_type_t { I=0, O=1, T=2, J=3, L=4, S=5, Z=6 };
+enum tetromino_type_t { TETROMINO_TYPE_NULL=0,
+                        I=1, O=2, T=3, J=4, L=5, S=6, Z=7,
+                        TETROMINO_TYPE_QUANTITY};
 
-typedef struct { enum tetromino_type_t type;
-                 uint8_t state;
-                 const uint16_t states[4]; } tetromino_t;
+typedef struct { enum tetromino_type_t type; uint8_t rotation; } tetromino_t;
 
+const char tetromino_type_t2char(enum tetromino_type_t t);
 const char tetromino_get_type_char(tetromino_t *t);
-extern const tetromino_t TETROMINOS[7];
-
 uint16_t tetromino_get_grid(tetromino_t *t);
 uint16_t tetromino_rotate_clockwise(tetromino_t *t);
 uint16_t tetromino_rotate_counterclockwise(tetromino_t *t);

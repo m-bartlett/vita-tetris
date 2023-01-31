@@ -1,37 +1,51 @@
-TITLE_ID = XERP00001
-TARGET   = vitahelloworld
-OBJS     = main.o draw.o font_data.o
+# ROOT_DIR := $(notdir $(patsubst %/,%,$(CURDIR)))
+MAKEFILE := $(firstword $(MAKEFILE_LIST))
+SHELL := /bin/bash
 
-LIBS = -lc -lSceDisplay_stub -lSceGxm_stub -lSceCtrl_stub -lSceTouch_stub
+TARGET := ttytris
 
-PREFIX  = arm-vita-eabi
-CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3
-ASFLAGS = $(CFLAGS)
+LIBS     :=
+PKG_LIBS :=
 
-all: $(TARGET).vpk
+CC        := gcc
+CFLAGS    := $(shell pkg-config --cflags $(PKG_LIBS)) -std=c11
+LIB_FLAGS := $(shell pkg-config --libs $(PKG_LIBS))
+LIB_FLAGS += $(addprefix -l, $(LIBS))
 
-%.vpk: eboot.bin
-	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
-	vita-pack-vpk -s param.sfo -b eboot.bin $@
+PREFIX    ?= /usr/local
+BINPREFIX := $(PREFIX)/bin
 
-eboot.bin: $(TARGET).velf
-	vita-make-fself $< $@
+SOURCES   := $(wildcard *.c)
+HEADERS   := $(wildcard *.h)
+OBJECTS   := $(SOURCES:.c=.o)
 
-%.velf: %.elf
-	vita-elf-create $< $@
 
-$(TARGET).elf: $(OBJS)
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+all:	# Multi-threaded make by default
+	$(MAKE) -j $(shell nproc) $(TARGET)
+
+debug: CFLAGS += -D DEBUG
+debug: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LIB_FLAGS) $^ -o $@ -O3
+
+$(OBJECTS): $(SOURCES) $(HEADERS) $(ICON_HEADERS)
+
+%.o: %.c
+	$(CC) $(FEATURES) $(CFLAGS) $(LDFLAGS) $(LIB_FLAGS) -c $< -o $@
+
+$(SOURCES): $(MAKEFILE) # If Makefile changes, recompile
+	@touch $(SOURCES)
+
+
+install: $(TARGET)
+	install -m 755 -D --target-directory "$(BINPREFIX)" "$(TARGET)"
+
+uninstall:
+	rm -f "$(BINPREFIX)/$(TARGET)"
 
 clean:
-	@rm -rf $(TARGET).vpk $(TARGET).velf $(TARGET).elf $(OBJS) \
-		eboot.bin param.sfo
+	rm -f $(TARGET) $(OBJECTS) $(ICON_HEADERS)
+	rm -rf icon/
 
-vpksend: $(TARGET).vpk
-	curl -T $(TARGET).vpk ftp://$(PSVITAIP):1337/ux0:/
-	@echo "Sent."
-
-send: eboot.bin
-	curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/$(TITLE_ID)/
-	@echo "Sent."
+.PHONY: debug default uninstall clean icons
