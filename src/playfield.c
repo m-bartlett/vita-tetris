@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "tetromino.h"
+#include <stdbool.h>
 #include "playfield.h"
 
 const uint8_t PLAYFIELD_WIDTH_1 = PLAYFIELD_WIDTH-1, PLAYFIELD_HEIGHT_1 = PLAYFIELD_HEIGHT-1;
@@ -36,27 +36,30 @@ bool playfield_validate_tetromino_placement(tetromino_t* t, uint8_t X, uint8_t Y
 }
 
 void playfield_place_tetromino(tetromino_t* t, uint8_t X, uint8_t Y) {
-    const char symbol = tetromino_get_type_char(t);
+    const enum tetromino_type_t symbol = t->type;
     const uint8_t X1=X+1, Y1=Y+1;
     const uint16_t grid = tetromino_get_grid(t);
-    uint16_t mask;= (uint16_t)1<<15;
+    uint16_t maskbit = (uint16_t)1<<15;
     
     for (int8_t y=Y-3; y < Y1; ++y) {
         if (y < 0 || y > PLAYFIELD_HEIGHT_1) {  // can't modify outside payfield bounds
-            mask_bit>>=4;
+            maskbit>>=4;
             continue;
         }
         for (int8_t x=X-3; x < X1; ++x) {
-            if (x < 0 || x > PLAYFIELD_WIDTH_1 /* left and right of playfield are occupied */ 
-                ||  > 0) {      /* nonzero indices are occupied */
-                PLAYFIELD[y][x]
+            if (x < 0 || x > PLAYFIELD_WIDTH_1) { /* left and right of playfield are occupied */
+                continue;
             }
+            if (maskbit&grid) PLAYFIELD[y][x]=(int8_t)symbol;
+            maskbit >>=1 ;
         }
     }
 }
 
 void playfield_print(void) {
+    printf(" ");
     for (int x = 0; x < PLAYFIELD_WIDTH_1; ++x) printf("_");
+    printf("\n");
     for (int y = 0; y < PLAYFIELD_HEIGHT_1; ++y) {
         printf("|");
         for (int x = 0; x < PLAYFIELD_WIDTH_1; ++x) {
@@ -66,6 +69,12 @@ void playfield_print(void) {
         }
         printf("|\n");
     }
-    for (int x = 0; x < PLAYFIELD_WIDTH_1; ++x) printf("_");
+    printf(" ");
+    for (int x = 0; x < PLAYFIELD_WIDTH_1; ++x) printf("^");
     printf("\n");
+}
+
+
+const (const int8_t*)* playfield_view(void) {
+    return (const int8_t**)PLAYFIELD;
 }

@@ -149,8 +149,18 @@ void test_empty_playfield_vacancy_bottom() { //{{{
 
 
 int main() {
-    test_empty_playfield_vacancy_top();
-    test_empty_playfield_vacancy_bottom();
-    print_test_report();
+    // test_empty_playfield_vacancy_top();
+    // test_empty_playfield_vacancy_bottom();
+    // const int8_t** view = playfield_view();
+    // for (size_t i = 0; i < 200; i++) {
+    //     printf("%d \n", view[i]);
+    // }
+    tetromino_t t = {Z, 0};
+    for (size_t i = 0; i < 4; i++) {
+        tetromino_rotate_clockwise(&t);
+        playfield_place_tetromino(&t, 4, (i+1)*4);
+        playfield_print();
+    }
+    // print_test_report();
     return 0;
 }
