@@ -1,9 +1,14 @@
 #include <stdio.h>
 
-unsigned char A[10][10]={0};
+#define PLAYFIELD_WIDTH 10
+#define PLAYFIELD_HEIGHT 20
 
-const unsigned char (*playfield_view())[10] {
-    return (const unsigned char (*)[10])A;
+typedef const unsigned char (*playfield_view_t)[PLAYFIELD_WIDTH];
+
+unsigned char A[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH]={0};
+
+playfield_view_t playfield_view() {
+    return (playfield_view_t)A;
 }
     
 
@@ -11,9 +16,9 @@ int main() {
     A[0][0]=69;
     A[1][0]=69;
     A[0][1]=69;
-    A[1][1]=69;
+    A[1][1]=60;
 
-    const unsigned char (*view)[10] = playfield_view();
+    playfield_view_t view = playfield_view();
     for (size_t j = 0; j < 2; j++) {
         for (size_t i = 0; i < 10; i++) {
             printf("%d ", view[j][i]);
