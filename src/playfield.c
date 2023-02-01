@@ -32,11 +32,11 @@ uint16_t playfield_get_4x4_vacancy_at_coordinate(uint8_t X, uint8_t Y) {/*{{{*/
 bool playfield_validate_tetromino_placement(tetromino_t* t, uint8_t X, uint8_t Y) {
     uint16_t tetromino_grid = tetromino_get_grid(t);
     uint16_t placement_grid = playfield_get_4x4_vacancy_at_coordinate(X,Y);
-    return tetromino_grid & placement_grid == 0;
+    return (tetromino_grid & placement_grid) == 0;
 }
 
 void playfield_place_tetromino(tetromino_t* t, uint8_t X, uint8_t Y) {
-    const enum tetromino_type_t symbol = t->type;
+    const enum tetromino_type_t block_type = t->type;
     const uint8_t X1=X+1, Y1=Y+1;
     const uint16_t grid = tetromino_get_grid(t);
     uint16_t maskbit = (uint16_t)1<<15;
@@ -50,7 +50,7 @@ void playfield_place_tetromino(tetromino_t* t, uint8_t X, uint8_t Y) {
             if (x < 0 || x > PLAYFIELD_WIDTH_1) { /* left and right of playfield are occupied */
                 continue;
             }
-            if (maskbit&grid) PLAYFIELD[y][x]=(int8_t)symbol;
+            if (maskbit&grid) PLAYFIELD[y][x] = (int8_t)block_type;
             maskbit >>=1 ;
         }
     }
@@ -75,6 +75,6 @@ void playfield_print(void) {
 }
 
 
-const (const int8_t*)* playfield_view(void) {
-    return (const int8_t**)PLAYFIELD;
+playfield_view_t playfield_view(void) {
+    return (playfield_view_t)PLAYFIELD;
 }
