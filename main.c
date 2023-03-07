@@ -3,14 +3,31 @@
 #include <vitaGL.h>
 #include <math.h>
 
-uint16_t indices[] = {
-	 // 0, 2, 1, 1, 2, 3, // Back
-	 4, 5, 6, 5, 7, 6, // Front
-	 8, 10,9, 9,10,11, // Left
-	12,13,14,13,15,14, // Right
-	16,17,18,17,19,18, // Bottom
-	20,22,21,21,22,23  // Top
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
+
+const int16_t CUBE_VERTICES[] = {
+	 1, 1, 1,    1, 1,-1,    1,-1, 1,    1,-1,-1, 
+	-1, 1, 1,   -1, 1,-1,   -1,-1, 1,   -1,-1,-1
 };
+
+const float CUBE_VERTEX_COLORS[] = {
+	// 1,1,1,  1,1,0,  1,0,1,  1,0,0,
+	// 0,1,1,  0,1,0,  0,0,1,  0,0,0
+	0,0,0,   0,0,1,   0,1,0,   0,1,1,
+	1,0,0,   1,0,1,   1,1,0,   1,1,1   
+};
+
+const uint16_t CUBE_FACE_VERTEX_INDICES[] = {
+	// These must assemble each triangular face in clockwise orientation to properly cull
+    0, 2, 1,   1, 2, 3,  /* right  */
+    4, 7, 6,   4, 5, 7,  /* left   */
+    2, 4, 6,   2, 0, 4,  /* front  */
+    // 1, 3, 7,   1, 7, 5,  /* back   */
+    3, 6, 7,   3, 2, 6,  /* top    */
+	0, 5, 4,   0, 1, 5,  /* bottom */
+};
+const size_t CUBE_FACE_VERTEX_INDICES_SIZE = ARRAY_SIZE(CUBE_FACE_VERTEX_INDICES);
+
 
 int main(){
 	// Initializing graphics device
@@ -18,21 +35,6 @@ int main(){
 	
 	// Enabling V-Sync
 	vglWaitVblankStart(GL_TRUE);
-	
-	float vertex_rgba[] = { 1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5,     
-                            1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5,     
-                            1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5,     
-                            1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5,     
-                            1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5,     
-                            1,1,1,.5,     1,0,0,.5,     0,0,1,.5,     0,1,0,.5   };
-
-
-	float vertex_xyz[] = { -1,-1,-1,   1,-1,-1,  -1, 1,-1,   1, 1,-1,   // front
-					       -1,-1, 1,   1,-1, 1,  -1, 1, 1,   1, 1, 1,   // back
-					       -1,-1,-1,  -1, 1,-1,  -1,-1, 1,  -1, 1, 1,   // left
-					        1,-1,-1,   1, 1,-1,   1,-1, 1,   1, 1, 1,   // right
-					       -1,-1,-1,   1,-1,-1,  -1,-1, 1,   1,-1, 1,   // top
-					       -1, 1,-1,   1, 1,-1,  -1, 1, 1,   1, 1, 1 }; // bottom
 	
 	// Setting clear color
 	glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
@@ -43,7 +45,7 @@ int main(){
 	gluPerspective(90.0f, 960.f/544.0f, 0.01f, 100.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f); // Centering the cube
+	glTranslatef(0.0f, 0.0f, -4.0f); // Centering the cube
 	
 	// Enabling depth test
 	glEnable(GL_DEPTH_TEST);
@@ -56,9 +58,7 @@ int main(){
 	glEnable( GL_BLEND );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-	for (int i = 0; i < 3*4*6; ++i) vertex_xyz[i] /= 2.0;
+	// glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
 	
 	// Main loop
@@ -69,19 +69,20 @@ int main(){
 		// Drawing our cube with vertex arrays
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, vertex_xyz);
-		glColorPointer(4, GL_FLOAT, 0, vertex_rgba);
+		glVertexPointer(3, GL_SHORT, 0, CUBE_VERTICES);
+		glColorPointer(3, GL_FLOAT, 0, CUBE_VERTEX_COLORS);
 
 
 		SceCtrlData pad;
 		sceCtrlPeekBufferPositive(0, &pad, 1);
-		if (pad.buttons & SCE_CTRL_LEFT)  glRotatef( 1, 0, 1, 0);
-		if (pad.buttons & SCE_CTRL_RIGHT) glRotatef(-1, 0, 1, 0);
-		if (pad.buttons & SCE_CTRL_UP)    glRotatef( 1, 1, 0, 0);
-		if (pad.buttons & SCE_CTRL_DOWN)  glRotatef(-1, 1, 0, 0);
+		if (pad.buttons & SCE_CTRL_LEFT)   glRotatef( 1, 0, 1, 0);
+		if (pad.buttons & SCE_CTRL_RIGHT)  glRotatef(-1, 0, 1, 0);
+		if (pad.buttons & SCE_CTRL_UP)     glRotatef( 1, 1, 0, 0);
+		if (pad.buttons & SCE_CTRL_DOWN)   glRotatef(-1, 1, 0, 0);
+		if (pad.buttons & SCE_CTRL_CROSS)  glTranslatef(0, 0, -0.1);
+		if (pad.buttons & SCE_CTRL_CIRCLE) glTranslatef(0, 0, 0.1);
 
-		glDrawElements(GL_TRIANGLES, 6*6, GL_UNSIGNED_SHORT, indices);
-		// glDrawArrays(GL_TRIANGLES, 0, 6*6); 
+		glDrawElements(GL_TRIANGLES, CUBE_FACE_VERTEX_INDICES_SIZE, GL_UNSIGNED_SHORT, CUBE_FACE_VERTEX_INDICES);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
 		
