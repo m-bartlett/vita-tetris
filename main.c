@@ -17,16 +17,20 @@ const float CUBE_VERTEX_COLORS[] = {
 	1,0,0,   1,0,1,   1,1,0,   1,1,1   
 };
 
-const uint16_t CUBE_FACE_VERTEX_INDICES[] = {
-	// These must assemble each triangular face in clockwise orientation to properly cull
-    0, 2, 1,   1, 2, 3,  /* right  */
-    4, 7, 6,   4, 5, 7,  /* left   */
-    2, 4, 6,   2, 0, 4,  /* front  */
-    // 1, 3, 7,   1, 7, 5,  /* back   */
-    3, 6, 7,   3, 2, 6,  /* top    */
-	0, 5, 4,   0, 1, 5,  /* bottom */
+// const uint16_t CUBE_FACE_VERTEX_INDICES[] = {
+//     0, 2, 1,   1, 2, 3,  /* right  */
+//     4, 7, 6,   4, 5, 7,  /* left   */
+//     2, 4, 6,   2, 0, 4,  /* front  */
+//     // 1, 3, 7,   1, 7, 5,  /* back   */
+//     3, 6, 7,   3, 2, 6,  /* top    */
+// 	0, 5, 4,   0, 1, 5,  /* bottom */
+// };_STRIP
+const uint16_t CUBE_FACE_STRIP_VERTEX_INDICES[] = { // Triangle-strip indices that wind clockwise
+	6,2,4,0,1,2,3,6,7,4,5,1
 };
-const size_t CUBE_FACE_VERTEX_INDICES_SIZE = ARRAY_SIZE(CUBE_FACE_VERTEX_INDICES);
+const size_t CUBE_FACE_STRIP_VERTEX_INDICES_SIZE = ARRAY_SIZE(CUBE_FACE_STRIP_VERTEX_INDICES);
+
+
 
 
 int main(){
@@ -75,14 +79,17 @@ int main(){
 
 		SceCtrlData pad;
 		sceCtrlPeekBufferPositive(0, &pad, 1);
-		if (pad.buttons & SCE_CTRL_LEFT)   glRotatef( 1, 0, 1, 0);
-		if (pad.buttons & SCE_CTRL_RIGHT)  glRotatef(-1, 0, 1, 0);
-		if (pad.buttons & SCE_CTRL_UP)     glRotatef( 1, 1, 0, 0);
-		if (pad.buttons & SCE_CTRL_DOWN)   glRotatef(-1, 1, 0, 0);
+		if (pad.buttons & SCE_CTRL_LEFT)   glRotatef(-1, 0, 1, 0);
+		if (pad.buttons & SCE_CTRL_RIGHT)  glRotatef( 1, 0, 1, 0);
+		if (pad.buttons & SCE_CTRL_UP)     glRotatef(-1, 1, 0, 0);
+		if (pad.buttons & SCE_CTRL_DOWN)   glRotatef( 1, 1, 0, 0);
 		if (pad.buttons & SCE_CTRL_CROSS)  glTranslatef(0, 0, -0.1);
 		if (pad.buttons & SCE_CTRL_CIRCLE) glTranslatef(0, 0, 0.1);
 
-		glDrawElements(GL_TRIANGLES, CUBE_FACE_VERTEX_INDICES_SIZE, GL_UNSIGNED_SHORT, CUBE_FACE_VERTEX_INDICES);
+		glDrawElements(GL_TRIANGLE_STRIP,
+		               CUBE_FACE_STRIP_VERTEX_INDICES_SIZE,
+		               GL_UNSIGNED_SHORT,
+		               CUBE_FACE_STRIP_VERTEX_INDICES);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
 		
