@@ -3,28 +3,16 @@
 
 #define _GNU_SOURCE
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <math.h>
+#include <stdio.h>
 #include <vitasdk.h>
 #include <vitaGL.h>
-// #include "shader.h"
+#include "linalg.h"
 
 #define DISPLAY_WIDTH 960
 #define DISPLAY_HEIGHT 544
-
-#ifndef HAVE_BUILTIN_SINCOS
-#define sincos _sincos
-static void
-sincos (double a, double *s, double *c)
-{
-  *s = sin (a);
-  *c = cos (a);
-}
-#endif
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
@@ -75,7 +63,6 @@ static GLint VBOglobal, IBOglobal;
 
 
 static GLfloat view_rot[3] = { 20.0, 30.0, 0.0 };
-static struct cube *cube1, *cube2, *cube3;
 static GLfloat angle = 0.0;
 static GLuint ModelViewProjectionMatrix_location,
               NormalMatrix_location,
@@ -83,101 +70,6 @@ static GLuint ModelViewProjectionMatrix_location,
               MaterialColor_location;
 static GLfloat ProjectionMatrix[16];
 static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
-
-
-static void multiply(GLfloat *m, const GLfloat *n) { //{{{
-   GLfloat tmp[16];
-   const GLfloat *row, *column;
-   div_t d;
-   int i, j;
-
-   for (i = 0; i < 16; i++) {
-      tmp[i] = 0;
-      d = div(i, 4);
-      row = n + d.quot * 4;
-      column = m + d.rem;
-      for (j = 0; j < 4; j++)
-         tmp[i] += row[j] * column[j * 4];
-   }
-   memcpy(m, &tmp, sizeof tmp);
-/*}}}*/ }
-
-static void rotate(GLfloat *m, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) { //{{{
-   double s, c;
-
-   sincos(angle, &s, &c);
-   GLfloat r[16] = {
-      x * x * (1 - c) + c,     y * x * (1 - c) + z * s, x * z * (1 - c) - y * s, 0,
-      x * y * (1 - c) - z * s, y * y * (1 - c) + c,     y * z * (1 - c) + x * s, 0, 
-      x * z * (1 - c) + y * s, y * z * (1 - c) - x * s, z * z * (1 - c) + c,     0,
-      0, 0, 0, 1
-   };
-
-   multiply(m, r);
-/*}}}*/ }
-
-static void translate(GLfloat *m, GLfloat x, GLfloat y, GLfloat z) {
-   GLfloat t[16] = { 1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  x, y, z, 1 };
-   multiply(m, t);
-}
-
-static void identity(GLfloat *m) { //{{{
-   GLfloat t[16] = {
-      1.0, 0.0, 0.0, 0.0,
-      0.0, 1.0, 0.0, 0.0,
-      0.0, 0.0, 1.0, 0.0,
-      0.0, 0.0, 0.0, 1.0,
-   };
-
-   memcpy(m, t, sizeof(t));
-/*}}}*/ }
-
-static void transpose(GLfloat *m) { //{{{
-   GLfloat t[16] = {
-      m[0], m[4], m[8],  m[12],
-      m[1], m[5], m[9],  m[13],
-      m[2], m[6], m[10], m[14],
-      m[3], m[7], m[11], m[15]};
-   memcpy(m, t, sizeof(t));
-/*}}}*/ }
-
-static void invert(GLfloat *m) { //{{{
-   GLfloat t[16];
-   identity(t);
-   t[12] = -m[12]; t[13] = -m[13]; t[14] = -m[14];
-   m[12] = m[13] = m[14] = 0;
-   transpose(m);
-   multiply(m, t);
-/*}}}*/ }
-
-void perspective(GLfloat *m,
-                 GLfloat fovy,
-                 GLfloat aspect,
-                 GLfloat zNear,
-                 GLfloat zFar) { //{{{
-   GLfloat tmp[16];
-   identity(tmp);
-
-   double sine, cosine, cotangent, deltaZ;
-   GLfloat radians = fovy / 2 * M_PI / 180;
-
-   deltaZ = zFar - zNear;
-   sincos(radians, &sine, &cosine);
-
-   if ((deltaZ == 0) || (sine == 0) || (aspect == 0))
-      return;
-
-   cotangent = cosine / sine;
-
-   tmp[0] = cotangent / aspect;
-   tmp[5] = cotangent;
-   tmp[10] = -(zFar + zNear) / deltaZ;
-   tmp[11] = -1;
-   tmp[14] = -2 * zNear * zFar / deltaZ;
-   tmp[15] = 0;
-
-   memcpy(m, tmp, sizeof(tmp));
-/*}}}*/ }
 
 
 void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
@@ -205,7 +97,7 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
 }
 
 
-static void draw_gear(GLfloat *transform,
+static void draw_cube(GLfloat *transform,
                       GLfloat x,
                       GLfloat y,
                       GLfloat angle,
@@ -214,7 +106,7 @@ static void draw_gear(GLfloat *transform,
    GLfloat normal_matrix[16];
    GLfloat model_view_projection[16];
 
-   /* Translate and rotate the gear */
+   /* Translate and rotate the cube */
                  
    memcpy(model_view, transform, sizeof (model_view));
    translate(model_view, x, y, 0);
@@ -233,7 +125,7 @@ static void draw_gear(GLfloat *transform,
    transpose(normal_matrix);
    glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
 
-   /* Set the gear color */
+   /* Set the cube color */
    glUniform4fv(MaterialColor_location, 1, color);
 
    /* Set the vertex buffer object to use */
@@ -257,7 +149,7 @@ static void draw_gear(GLfloat *transform,
                          /* stride */     3 * sizeof(int16_t),
                          /* pointer */    CUBE_VERTEX_NORMALS);
 
-   /* Draw the triangle strips that comprise the gear */
+   /* Draw the triangle strips that comprise the cube */
    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
    glDrawElements(/* mode */    GL_TRIANGLE_STRIP,
                   /* count */   ARRAY_SIZE(CUBE_FACE_STRIP_VERTEX_INDICES),
@@ -269,7 +161,7 @@ static void draw_gear(GLfloat *transform,
    glDisableVertexAttribArray(1);
 }
 
-static void gears_draw(void) {
+static void cube_draw(void) {
    const static GLfloat red[4] = { 0.8, 0.1, 0.4, 1.0 };
    GLfloat transform[16];
    identity(transform);
@@ -283,31 +175,27 @@ static void gears_draw(void) {
    rotate(transform, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
    rotate(transform, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
 
-   /* Draw the gears */
-   draw_gear(transform, 0, 0, angle, red);
+   /* Draw the cube */
+   draw_cube(transform, 0, 0, angle, red);
 
    vglSwapBuffers(GL_FALSE);
 }
 
-static void gears_reshape(int width, int height) {
+static void cube_reshape(int width, int height) {
    perspective(ProjectionMatrix, 60.0, width / (float)height, 1.0, 1024.0);
    glViewport(0, 0, (GLint) width, (GLint) height);
 }
 
-static void gears_special(int special, int crap, int morecrap) {
+static void cube_special(int special, int crap, int morecrap) {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
-   if (pad.buttons & SCE_CTRL_LEFT)
-         view_rot[1] += 5.0;
-   if (pad.buttons & SCE_CTRL_RIGHT)
-         view_rot[1] -= 5.0;
-   if (pad.buttons & SCE_CTRL_UP)
-         view_rot[0] += 5.0;
-   if (pad.buttons & SCE_CTRL_DOWN)
-         view_rot[0] -= 5.0;
+   if (pad.buttons & SCE_CTRL_LEFT)  view_rot[1] += 5.0;
+   if (pad.buttons & SCE_CTRL_RIGHT) view_rot[1] -= 5.0;
+   if (pad.buttons & SCE_CTRL_UP)    view_rot[0] += 5.0;
+   if (pad.buttons & SCE_CTRL_DOWN)  view_rot[0] -= 5.0;
 }
 
-static void gears_idle(void) {
+static void cube_idle(void) {
    static int frames = 0;
    static double tRot0 = -1.0, tRate0 = -1.0;
    double dt, t = (double)sceKernelGetProcessTimeWide() / 1000000.0;
@@ -320,9 +208,9 @@ static void gears_idle(void) {
    angle += 70.0 * dt;  /* 70 degrees per second */
    if (angle > 3600.0) angle -= 3600.0;
 
-   gears_special(0, 0, 0);
-   gears_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-   gears_draw();
+   cube_special(0, 0, 0);
+   cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+   cube_draw();
    frames++;
 
    if (tRate0 < 0.0)
@@ -338,7 +226,7 @@ static void gears_idle(void) {
 }
 
 
-static void gears_init(void) {
+static void cube_init(void) {
    GLuint v, f, program;
    const char *p;
    char msg[512];
@@ -350,14 +238,13 @@ static void gears_init(void) {
    load_shader("app0:vertex.cg", GL_VERTEX_SHADER, &program);
    load_shader("app0:fragment.cg", GL_FRAGMENT_SHADER, &program);
 
-
    glBindAttribLocation(program, 0, "position");
    glBindAttribLocation(program, 1, "normal");
 
    glLinkProgram(program);
 
-   /* Enable the shaders */
    glUseProgram(program);
+
    /* Get the locations of the uniforms so we can access them */
    ModelViewProjectionMatrix_location = glGetUniformLocation(program, "ModelViewProjectionMatrix");
    NormalMatrix_location = glGetUniformLocation(program, "NormalMatrix");
@@ -389,8 +276,8 @@ main(int argc, char *argv[])
    /* Initialize the window */
    vglInitExtended(0, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x800000, SCE_GXM_MULTISAMPLE_4X);
 
-   gears_init();
-   for (;;) { gears_idle(); }
+   cube_init();
+   while(1) { cube_idle(); }
 
    return 0;
 }
