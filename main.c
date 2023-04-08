@@ -162,7 +162,7 @@ static void draw_cube(GLfloat *transform,
 }
 
 static void cube_draw(void) {
-   const static GLfloat red[4] = { 0.8, 0.1, 0.4, 1.0 };
+   const static GLfloat red[4] = { 1.0, 0.7, 0.4, 1.0 };
    GLfloat transform[16];
    identity(transform);
 

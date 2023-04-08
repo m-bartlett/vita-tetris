@@ -10,7 +10,7 @@ float4 out Color : COLOR)
 {
     float3 N = normalize(mul(float4(normal, 1.0), NormalMatrix).xyz);
     float3 L = normalize(LightSourcePosition.xyz);
-    float diffuse = max(dot(N, L), 0.0);
+    float diffuse = max(dot(N, L), 0.333);
     Color = diffuse * MaterialColor;
     gl_Position = mul(float4(position, 1.0), ModelViewProjectionMatrix);
 }
