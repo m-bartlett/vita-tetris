@@ -13,3 +13,5 @@
     - shared allows multiple uniform blocks to share the same memory region, which can be useful for reducing memory usage and improving performance in some cases. However, this can also make it harder to predict the layout of data in memory, which can make debugging more difficult.
 
 - "Array of structures" vertex attributes are generally more performant (locality caching) unless only one dimension of the structure is commonly changing, which will force a re-upload of the entire array. Highly-dynamic data should be stored in a separate array and then only that array can be re-uploaded as a vertex attribute.
+
+- **glShaderSource** accepts an *array* or strings. If you allocate a char array for one string, you will need to provide a pointer to *the starting pointer*. I accomplished this with anonymous array containing the address to the string like: `(const char*[]){&shader_body}`.
