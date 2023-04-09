@@ -16,52 +16,112 @@
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
-const int16_t CUBE_VERTICES[] = {
- /*0*/  1, 1, 1,   /*1*/  1, 1,-1,   /*2*/  1,-1, 1,   /*3*/  1,-1,-1, 
- /*4*/ -1, 1, 1,   /*5*/ -1, 1,-1,   /*6*/ -1,-1, 1,   /*7*/ -1,-1,-1
-};
-
-const int16_t CUBE_VERTEX_NORMALS[] = {
- /*0*/  1, 1, 1,   /*1*/  1, 1,-1,   /*2*/  1,-1, 1,   /*3*/  1,-1,-1, 
-  /*4*/ -1, 1, 1,   /*5*/ -1, 1,-1,   /*6*/ -1,-1, 1,   /*7*/ -1,-1,-1
-};
-
-const uint16_t CUBE_FACE_STRIP_VERTEX_INDICES[] = { // Triangle-strip indices that wind clockwise
-   6,2,4,0,1,2,3,6,7,4,5,1 
-   // 6,2,4,0,0,1,1,3,5,7
-};
-const size_t CUBE_FACE_STRIP_VERTEX_INDICES_SIZE = ARRAY_SIZE(CUBE_FACE_STRIP_VERTEX_INDICES);
-
-
 #define PLAYFIELD_WIDTH 10
 #define PLAYFIELD_HEIGHT 20
-const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
-   "J000II00ZS",
-   "00I0Z0L000",
-   "T00O0IZT0L",
-   "000LZL00JO",
-   "000000I000",
-   "TLL0000J00",
-   "000OILIZJI",
-   "J0TLLTSTOZ",
-   "LL000000JZ",
-   "JO0J000000",
-   "L0LIIT0I00",
-   "0J000000O0",
-   "IL00O00ZLI",
-   "T00I0LL0OL",
-   "0LZTOTSJ0J",
-   "0SI0SJ0000",
-   "STZO00IT0T",
-   "00O00LT0TI",
-   "O0SZ0LS00J",
-   "JO00TTOL0L",
+#define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
+#define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
+
+static uint16_t VERTEX_BUFFER[STRIP_VERTEX_COUNT_MAX]={0};
+static uint16_t VERTEX_BUFFER_SIZE=0;
+static const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
+   "J\0\0\0II\0\0ZS",
+   "\0\0I\0Z\0L\0\0\0",
+   "T\0\0O\0IZT\0L",
+   "\0\0\0LZL\0\0JO",
+   "\0\0\0\0\0\0I\0\0\0",
+   "TLL\0\0\0\0J\0\0",
+   "\0\0\0OILIZJI",
+   "J\0TLLTSTOZ",
+   "LL\0\0\0\0\0\0JZ",
+   "JO\0J\0\0\0\0\0\0",
+   "LLLIITLILL",
+   "\0J\0\0\0\0\0\0O\0",
+   "IL\0\0O\0\0ZLI",
+   "T\0\0I\0LL\0OL",
+   "\0LZTOTSJ\0J",
+   "\0SI\0SJ\0\0\0\0",
+   "STZO\0\0IT\0T",
+   "\0\0O\0\0LT\0TI",
+   "O\0SZ\0LS\0\0J",
+   "JO\0\0TTOL\0L",
 };
 
 
-static GLint VBOglobal, IBOglobal;
+void parse_playfield_to_strip_vertices() {
+	uint16_t vertex_index = 0;
+	GLboolean current_is_populated, previous_was_populated;
+	uint8_t y=0, x=0, y1=0, x1=0;
+
+	while (y < PLAYFIELD_HEIGHT) {
+		const char* row = PLAYFIELD[y];
+		previous_was_populated = GL_FALSE;
+		y1 = y+1;
+		x = 0;
+
+		while (x < PLAYFIELD_WIDTH-1) {
+			current_is_populated = row[x] != '\0';
+			x1 = x+1;
+
+			// printf("(%d,%d) %c \n", x,y, row[x_1]);
+
+			if (current_is_populated) {
+
+				if (!previous_was_populated) {
+					// Queue top left vertex twice to create a degenerate start point
+					VERTEX_BUFFER[vertex_index++] = x;
+					VERTEX_BUFFER[vertex_index++] = y1;
+					VERTEX_BUFFER[vertex_index++] = 0;
+					VERTEX_BUFFER[vertex_index++] = x;
+					VERTEX_BUFFER[vertex_index++] = y1;
+					VERTEX_BUFFER[vertex_index++] = 0;
+					// Queue bottom left vertex
+					VERTEX_BUFFER[vertex_index++] = x;
+					VERTEX_BUFFER[vertex_index++] = y;
+					VERTEX_BUFFER[vertex_index++] = 0;
+				}
+
+				// Queue top right & bottom right vertices. These are contiguous quads in the strip.
+				VERTEX_BUFFER[vertex_index++] = x1;
+				VERTEX_BUFFER[vertex_index++] = y1;
+				VERTEX_BUFFER[vertex_index++] = 0;
+				VERTEX_BUFFER[vertex_index++] = x1;
+				VERTEX_BUFFER[vertex_index++] = y;
+				VERTEX_BUFFER[vertex_index++] = 0;
+			}
+
+			else {  // Current is empty
+
+				if (previous_was_populated) {
+					// Queue bottom left vertex again to create a degenerate end point
+					VERTEX_BUFFER[vertex_index++] = x;
+					VERTEX_BUFFER[vertex_index++] = y;
+					VERTEX_BUFFER[vertex_index++] = 0;
+				}
+
+				// Otherwise, previous empty & current empty so nothing to do
+			}
+
+			previous_was_populated = current_is_populated;
+			x = x1;
+		}
+
+		if (previous_was_populated) {
+		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
+		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
+		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
+		}
+
+		y = y1;
+	}
+
+	fflush(stdout);
+
+	vertex_index -= 3; // last vertex is ignorable degenerate restart
+	VERTEX_BUFFER_SIZE = vertex_index;
+}
 
 
+static GLint VBOglobal;
 static GLfloat view_rot[3] = { 20.0, 30.0, 0.0 };
 static GLfloat angle = 0.0;
 static GLuint ModelViewProjectionMatrix_location,
@@ -74,11 +134,7 @@ static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
 
 void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
    FILE *f = fopen(shader_path, "r");
-   if (!f) {
-     printf("Shader error\n\n");
-     exit(1);
-     return;
-   }
+   if (!f) {printf("Shader error\n\n"); return; }
    fseek(f, 0, SEEK_END);
    uint32_t shader_size = ftell(f);
    fseek(f, 0, SEEK_SET);
@@ -90,7 +146,7 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
    GLuint shader_ref = glCreateShader(shader_type);
    glShaderSource(/* shader */ shader_ref,
                   /* sources count */ 1,
-                  /* array of string arrays */ (const char*[]){&shader_body},
+                  /* array of string arrays */ (const char*[]){(const char*)&shader_body},
                   /* string length(s) */ &shader_size);
    glCompileShader(shader_ref);
    glAttachShader(*program, shader_ref);
@@ -119,18 +175,14 @@ static void draw_cube(GLfloat *transform,
    glUniformMatrix4fv(ModelViewProjectionMatrix_location, 1, GL_FALSE,
                       model_view_projection);
 
-   /* Create and set the NormalMatrix. It's the inverse transpose of the ModelView matrix. */
    memcpy(normal_matrix, model_view, sizeof (normal_matrix));
    invert(normal_matrix);
    transpose(normal_matrix);
    glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
 
-   /* Set the cube color */
    glUniform4fv(MaterialColor_location, 1, color);
 
-   /* Set the vertex buffer object to use */
    glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBOglobal);
 
    glEnableVertexAttribArray(0);
    glVertexAttribPointer(/* location */   0,
@@ -140,29 +192,27 @@ static void draw_cube(GLfloat *transform,
                          /* stride */     3 * sizeof(int16_t),
                          /* pointer */    NULL); // NULL == use bound GL_ARRAY_BUFFER
 
-   glBindBuffer(GL_ARRAY_BUFFER, 0); // Not sure why this is needed, but it is.
-   glEnableVertexAttribArray(1);
-   glVertexAttribPointer(/* location */   1,
-                         /* dimensions */ 3,
-                         /* type */       GL_SHORT,
-                         /* normalized */ GL_FALSE,
-                         /* stride */     3 * sizeof(int16_t),
-                         /* pointer */    CUBE_VERTEX_NORMALS);
+   // glBindBuffer(GL_ARRAY_BUFFER, 0); // Not sure why this is needed, but it is.
+   // glEnableVertexAttribArray(1);
+   // glVertexAttribPointer(/* location */   1,
+   //                       /* dimensions */ 3,
+   //                       /* type */       GL_SHORT,
+   //                       /* normalized */ GL_FALSE,
+   //                       /* stride */     3 * sizeof(int16_t),
+   //                       /* pointer */    CUBE_VERTEX_NORMALS);
 
-   /* Draw the triangle strips that comprise the cube */
-   // glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
-   glDrawElements(/* mode */    GL_TRIANGLE_STRIP,
-                  /* count */   ARRAY_SIZE(CUBE_FACE_STRIP_VERTEX_INDICES),
-                  /* type */    GL_UNSIGNED_SHORT,
-                  /* indices */ NULL); // NULL == use bound GL_ELEMENT_ARRAY_BUFFER
+   glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
+   glDrawArrays(/* mode */  GL_TRIANGLE_STRIP,
+                /* first */ 0,
+                /* count */ (VERTEX_BUFFER_SIZE-1)/3);
 
    /* Disable the attributes */
    glDisableVertexAttribArray(0);
-   glDisableVertexAttribArray(1);
+   // glDisableVertexAttribArray(1);
 }
 
 static void cube_draw(void) {
-   const static GLfloat red[4] = { 1.0, 0.7, 0.4, 1.0 };
+   const static GLfloat color[4] = { 1.0, 0.0, 0.4, 1.0 };
    GLfloat transform[16];
    identity(transform);
 
@@ -170,13 +220,13 @@ static void cube_draw(void) {
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    /* Translate and rotate the view */
-   translate(transform, 0, 0, -20);
+   translate(transform, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, -20);
    rotate(transform, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
    rotate(transform, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
    rotate(transform, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
 
    /* Draw the cube */
-   draw_cube(transform, 0, 0, angle, red);
+   draw_cube(transform, 0, 0, angle, color);
 
    vglSwapBuffers(GL_FALSE);
 }
@@ -227,23 +277,19 @@ static void cube_idle(void) {
 
 
 static void cube_init(void) {
-   GLuint v, f, program;
-   const char *p;
-   char msg[512];
-
    glEnable(GL_CULL_FACE);
+   glFrontFace(GL_CCW); 
    glEnable(GL_DEPTH_TEST);
 
-   program = glCreateProgram();
+   GLuint program = glCreateProgram();
    load_shader("app0:vertex.cg", GL_VERTEX_SHADER, &program);
    load_shader("app0:fragment.cg", GL_FRAGMENT_SHADER, &program);
 
+   glLinkProgram(program);
+   glUseProgram(program);
+
    glBindAttribLocation(program, 0, "position");
    glBindAttribLocation(program, 1, "normal");
-
-   glLinkProgram(program);
-
-   glUseProgram(program);
 
    /* Get the locations of the uniforms so we can access them */
    ModelViewProjectionMatrix_location = glGetUniformLocation(program, "ModelViewProjectionMatrix");
@@ -252,32 +298,31 @@ static void cube_init(void) {
    MaterialColor_location = glGetUniformLocation(program, "MaterialColor");
    /* Set the LightSourcePosition uniform which is constant throught the program */
    glUniform4fv(LightSourcePosition_location, 1, LightSourcePosition);
+
+   parse_playfield_to_strip_vertices();
+   const uint16_t* vertex_buffer = &VERTEX_BUFFER[3]; // Discard first vertex, it's degenerate.
    
    glGenBuffers(1, &VBOglobal);
    glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
-   glBufferData(/* target */ GL_ARRAY_BUFFER,
-                /* size */   8 * 3 * sizeof(int16_t),
-                /* data */   CUBE_VERTICES,
-                /* usage */  GL_STATIC_DRAW);
-
-   GLuint index_buffer;
-   glGenBuffers(1, &IBOglobal);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBOglobal);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                sizeof(CUBE_FACE_STRIP_VERTEX_INDICES),
-                CUBE_FACE_STRIP_VERTEX_INDICES,
-                GL_STATIC_DRAW);
-
+   glBufferData(/* type */  GL_ARRAY_BUFFER,
+                /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(uint16_t),
+                /* data */  vertex_buffer,
+                /* usage */ GL_STATIC_DRAW);
 }
 
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
    /* Initialize the window */
    vglInitExtended(0, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x800000, SCE_GXM_MULTISAMPLE_4X);
 
    cube_init();
-   while(1) { cube_idle(); }
+
+   cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+
+   while(1) {
+   	cube_special(0,0,0);
+   	cube_draw();
+   	// cube_idle();
+   }
 
    return 0;
 }
