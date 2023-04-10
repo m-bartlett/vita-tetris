@@ -21,81 +21,80 @@
 #define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
 #define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
 
-static uint16_t VERTEX_BUFFER[STRIP_VERTEX_COUNT_MAX]={0};
-static uint16_t VERTEX_BUFFER_SIZE=0;
+
 static const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
-   "J\0\0\0II\0\0ZS",
-   "\0\0I\0Z\0L\0\0\0",
-   "T\0\0O\0IZT\0L",
-   "\0\0\0LZL\0\0JO",
-   "\0\0\0\0\0\0I\0\0\0",
-   "TLL\0\0\0\0J\0\0",
-   "\0\0\0OILIZJI",
-   "J\0TLLTSTOZ",
-   "LL\0\0\0\0\0\0JZ",
-   "JO\0J\0\0\0\0\0\0",
-   "LLLIITLILL",
-   "\0J\0\0\0\0\0\0O\0",
-   "IL\0\0O\0\0ZLI",
-   "T\0\0I\0LL\0OL",
-   "\0LZTOTSJ\0J",
-   "\0SI\0SJ\0\0\0\0",
-   "STZO\0\0IT\0T",
-   "\0\0O\0\0LT\0TI",
-   "O\0SZ\0LS\0\0J",
-   "JO\0\0TTOL\0L",
+	{1,0,0,0,0,0,0,0,0,0},
+	{2,2,0,0,0,0,0,0,0,0},
+	{3,3,3,0,0,0,0,0,0,0},
+	{4,4,4,4,0,0,0,0,0,0},
+	{5,5,5,5,5,0,0,0,0,0},
+	{6,6,6,6,6,6,0,0,0,0},
+	{0,3,3,3,3,3,3,0,0,0},
+	{0,0,4,4,4,4,4,4,0,0},
+	{0,0,0,5,5,5,5,5,5,0},
+	{0,0,0,0,6,6,6,6,6,6},
+	{2,2,2,2,2,2,0,0,0,0},
+	{0,3,3,3,3,3,3,0,0,0},
+	{0,0,4,4,4,4,4,4,0,0},
+	{0,0,0,5,5,5,5,5,5,0},
+	{0,0,0,0,6,6,6,6,6,6},
+	{0,0,0,0,0,5,5,5,5,5},
+	{0,0,0,0,0,0,4,4,4,4},
+	{0,0,0,0,0,0,0,3,3,3},
+	{0,0,0,0,0,0,0,0,2,2},
+	{0,0,0,0,0,0,0,0,0,1},
 };
+
+#define POSITION_LOCATION 0
+#define TEXCOORD_LOCATION 1
+#define NORMAL_LOCATION 2
+#define TYPE_LOCATION 3
+
+typedef struct {
+    uint16_t x, y, z;
+    uint16_t u, v;
+    // uint16_t type;
+} vertex_t;
+
+static vertex_t VERTEX_BUFFER[STRIP_VERTEX_COUNT_MAX];
+static uint16_t VERTEX_BUFFER_SIZE=0;
 
 
 void parse_playfield_to_strip_vertices() {
 	uint16_t vertex_index = 0;
 	GLboolean current_is_populated, previous_was_populated;
-	uint8_t y=0, x=0, y1=0, x1=0;
+	uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
 
 	while (y < PLAYFIELD_HEIGHT) {
-		const char* row = PLAYFIELD[y];
 		previous_was_populated = GL_FALSE;
 		y1 = y+1;
 		x = 0;
+		const char* row = PLAYFIELD[r--];
 
-		while (x < PLAYFIELD_WIDTH-1) {
+		while (x < PLAYFIELD_WIDTH) {
 			current_is_populated = row[x] != '\0';
 			x1 = x+1;
-
-			// printf("(%d,%d) %c \n", x,y, row[x_1]);
 
 			if (current_is_populated) {
 
 				if (!previous_was_populated) {
 					// Queue top left vertex twice to create a degenerate start point
-					VERTEX_BUFFER[vertex_index++] = x;
-					VERTEX_BUFFER[vertex_index++] = y1;
-					VERTEX_BUFFER[vertex_index++] = 0;
-					VERTEX_BUFFER[vertex_index++] = x;
-					VERTEX_BUFFER[vertex_index++] = y1;
-					VERTEX_BUFFER[vertex_index++] = 0;
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y1, .z=0, .u=0, .v=1};
+					VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-1];
 					// Queue bottom left vertex
-					VERTEX_BUFFER[vertex_index++] = x;
-					VERTEX_BUFFER[vertex_index++] = y;
-					VERTEX_BUFFER[vertex_index++] = 0;
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0};
 				}
 
 				// Queue top right & bottom right vertices. These are contiguous quads in the strip.
-				VERTEX_BUFFER[vertex_index++] = x1;
-				VERTEX_BUFFER[vertex_index++] = y1;
-				VERTEX_BUFFER[vertex_index++] = 0;
-				VERTEX_BUFFER[vertex_index++] = x1;
-				VERTEX_BUFFER[vertex_index++] = y;
-				VERTEX_BUFFER[vertex_index++] = 0;
+				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y1, .z=0, .u=1, .v=1};
+				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=1, .v=1};
 			}
 
 			else {  // Current is empty
 
 				if (previous_was_populated) {
 					// Queue bottom left vertex again to create a degenerate end point
-					VERTEX_BUFFER[vertex_index++] = x;
-					VERTEX_BUFFER[vertex_index++] = y;
-					VERTEX_BUFFER[vertex_index++] = 0;
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0};
 				}
 
 				// Otherwise, previous empty & current empty so nothing to do
@@ -106,17 +105,14 @@ void parse_playfield_to_strip_vertices() {
 		}
 
 		if (previous_was_populated) {
-		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
-		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
-		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-3];
+			// If the last square in the row was populated, manually add a final degenerate vertex
+		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-1];
 		}
 
 		y = y1;
 	}
 
-	fflush(stdout);
-
-	vertex_index -= 3; // last vertex is ignorable degenerate restart
+	vertex_index--; // last vertex is ignorable degenerate restart
 	VERTEX_BUFFER_SIZE = vertex_index;
 }
 
@@ -184,13 +180,15 @@ static void draw_cube(GLfloat *transform,
 
    glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
 
-   glEnableVertexAttribArray(0);
-   glVertexAttribPointer(/* location */   0,
-                         /* dimensions */ 3,
-                         /* type */       GL_SHORT,
-                         /* normalized */ GL_FALSE,
-                         /* stride */     3 * sizeof(int16_t),
-                         /* pointer */    NULL); // NULL == use bound GL_ARRAY_BUFFER
+   glEnableVertexAttribArray(POSITION_LOCATION);
+   glVertexAttribPointer(/* location */  POSITION_LOCATION,
+                         /* dimension */ 3,
+                         /* type */      GL_SHORT,
+                         /* normalize */ GL_FALSE,
+                         /* stride */    sizeof(vertex_t),
+                         /* pointer */   offsetof(vertex_t,x));
+                         	  // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
+
 
    // glBindBuffer(GL_ARRAY_BUFFER, 0); // Not sure why this is needed, but it is.
    // glEnableVertexAttribArray(1);
@@ -204,11 +202,9 @@ static void draw_cube(GLfloat *transform,
    glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
    glDrawArrays(/* mode */  GL_TRIANGLE_STRIP,
                 /* first */ 0,
-                /* count */ (VERTEX_BUFFER_SIZE-1)/3);
+                /* count */ (VERTEX_BUFFER_SIZE-1));
 
-   /* Disable the attributes */
-   glDisableVertexAttribArray(0);
-   // glDisableVertexAttribArray(1);
+   glDisableVertexAttribArray(POSITION_LOCATION);
 }
 
 static void cube_draw(void) {
@@ -277,7 +273,7 @@ static void cube_idle(void) {
 
 
 static void cube_init(void) {
-   glEnable(GL_CULL_FACE);
+   // glEnable(GL_CULL_FACE);
    glFrontFace(GL_CCW); 
    glEnable(GL_DEPTH_TEST);
 
@@ -288,8 +284,10 @@ static void cube_init(void) {
    glLinkProgram(program);
    glUseProgram(program);
 
-   glBindAttribLocation(program, 0, "position");
-   glBindAttribLocation(program, 1, "normal");
+   glBindAttribLocation(program, POSITION_LOCATION, "position");
+   // glBindAttribLocation(program, NORMAL_LOCATION, "normal");
+   // glBindAttribLocation(program, TEXCOORD_LOCATION, "texcoord");
+   // glBindAttribLocation(program, TYPE_LOCATION, "type");
 
    /* Get the locations of the uniforms so we can access them */
    ModelViewProjectionMatrix_location = glGetUniformLocation(program, "ModelViewProjectionMatrix");
@@ -300,13 +298,12 @@ static void cube_init(void) {
    glUniform4fv(LightSourcePosition_location, 1, LightSourcePosition);
 
    parse_playfield_to_strip_vertices();
-   const uint16_t* vertex_buffer = &VERTEX_BUFFER[3]; // Discard first vertex, it's degenerate.
    
    glGenBuffers(1, &VBOglobal);
    glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
    glBufferData(/* type */  GL_ARRAY_BUFFER,
-                /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(uint16_t),
-                /* data */  vertex_buffer,
+                /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(vertex_t),
+                /* data */  &VERTEX_BUFFER[1], // Discard first vertex, it's degenerate.
                 /* usage */ GL_STATIC_DRAW);
 }
 

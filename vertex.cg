@@ -1,6 +1,6 @@
 void main(
 float3 position,
-float3 normal,
+// float3 normal,
 uniform float4x4 ModelViewProjectionMatrix,
 uniform float4x4 NormalMatrix,
 float4 out gl_Position : POSITION,
@@ -8,7 +8,8 @@ uniform float4 LightSourcePosition,
 uniform float4 MaterialColor,
 float4 out Color : COLOR)
 {
-    float3 N = normalize(mul(float4(normal, 1.0), NormalMatrix).xyz);
+    float3 normal = float3(0,0,1);
+    float3 N = normalize(mul(float4(normal,1), NormalMatrix).xyz);
     float3 L = normalize(LightSourcePosition.xyz);
     float diffuse = max(dot(N, L), 0.333);
     Color = diffuse * MaterialColor;
