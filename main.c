@@ -45,10 +45,28 @@ static const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
 	{0,0,0,0,0,0,0,0,0,1},
 };
 
+#define TEXTURE_HEIGHT 12
+#define TEXTURE_WIDTH 12
+static const uint8_t TEXTURE[TEXTURE_HEIGHT*TEXTURE_WIDTH] = {
+	250,244,238,232,226,220,215,209,204,199,193,66,
+	244,87,97,106,116,127,138,149,161,173,185,60,
+	238,97,106,116,127,138,149,161,173,185,87,55,
+	232,106,116,127,138,149,161,173,185,87,97,49,
+	226,116,127,138,149,161,173,185,87,97,106,44,
+	220,127,138,149,161,173,185,87,97,106,116,38,
+	215,138,149,161,173,185,87,97,106,116,127,32,
+	209,149,161,173,185,87,97,106,116,127,138,27,
+	204,161,173,185,87,97,106,116,127,138,149,21,
+	199,173,185,87,97,106,116,127,138,149,161,16,
+	193,185,87,97,106,116,127,138,149,161,173,10,
+	66,60,55,49,44,38,32,27,21,16,10,5,
+};
+
+
 #define POSITION_LOCATION 0
 #define TEXCOORD_LOCATION 1
-#define NORMAL_LOCATION 2
-#define TYPE_LOCATION 3
+// #define NORMAL_LOCATION 2
+// #define TYPE_LOCATION 3
 
 typedef struct {
     uint16_t x, y, z;
@@ -85,9 +103,9 @@ void parse_playfield_to_strip_vertices() {
 					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0};
 				}
 
-				// Queue top right & bottom right vertices. These are contiguous quads in the strip.
+				// Queue top right & bottom right vertices, these are contiguous quads in the strip
 				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y1, .z=0, .u=1, .v=1};
-				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=1, .v=1};
+				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=0, .v=1};
 			}
 
 			else {  // Current is empty
@@ -117,7 +135,7 @@ void parse_playfield_to_strip_vertices() {
 }
 
 
-static GLint VBOglobal;
+static GLuint VertexBufferID_g, TextureID_g;
 static GLfloat view_rot[3] = { 20.0, 30.0, 0.0 };
 static GLfloat angle = 0.0;
 static GLuint ModelViewProjectionMatrix_location,
@@ -174,11 +192,10 @@ static void draw_cube(GLfloat *transform,
    memcpy(normal_matrix, model_view, sizeof (normal_matrix));
    invert(normal_matrix);
    transpose(normal_matrix);
+
    glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
 
-   glUniform4fv(MaterialColor_location, 1, color);
-
-   glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
+   glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
 
    glEnableVertexAttribArray(POSITION_LOCATION);
    glVertexAttribPointer(/* location */  POSITION_LOCATION,
@@ -189,22 +206,20 @@ static void draw_cube(GLfloat *transform,
                          /* pointer */   offsetof(vertex_t,x));
                          	  // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
 
+   glEnableVertexAttribArray(TEXCOORD_LOCATION);
+   glVertexAttribPointer(/* location */  TEXCOORD_LOCATION,
+                         /* dimension */ 2,
+                         /* type */      GL_SHORT,
+                         /* normalize */ GL_FALSE,
+                         /* stride */    sizeof(vertex_t),
+                         /* pointer */   (GLvoid*)offsetof(vertex_t,u));
 
-   // glBindBuffer(GL_ARRAY_BUFFER, 0); // Not sure why this is needed, but it is.
-   // glEnableVertexAttribArray(1);
-   // glVertexAttribPointer(/* location */   1,
-   //                       /* dimensions */ 3,
-   //                       /* type */       GL_SHORT,
-   //                       /* normalized */ GL_FALSE,
-   //                       /* stride */     3 * sizeof(int16_t),
-   //                       /* pointer */    CUBE_VERTEX_NORMALS);
-
-   glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
    glDrawArrays(/* mode */  GL_TRIANGLE_STRIP,
                 /* first */ 0,
                 /* count */ (VERTEX_BUFFER_SIZE-1));
 
    glDisableVertexAttribArray(POSITION_LOCATION);
+   glDisableVertexAttribArray(TEXCOORD_LOCATION);
 }
 
 static void cube_draw(void) {
@@ -212,7 +227,7 @@ static void cube_draw(void) {
    GLfloat transform[16];
    identity(transform);
 
-   glClearColor(0.5, 0.5, 0.5, 1.0);
+   glClearColor(0.1, 0.1, 0.1, 1.0);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    /* Translate and rotate the view */
@@ -281,30 +296,50 @@ static void cube_init(void) {
    load_shader("app0:vertex.cg", GL_VERTEX_SHADER, &program);
    load_shader("app0:fragment.cg", GL_FRAGMENT_SHADER, &program);
 
+   glBindAttribLocation(program, POSITION_LOCATION, "position");
+   glBindAttribLocation(program, TEXCOORD_LOCATION, "texcoord");
+   // glBindAttribLocation(program, NORMAL_LOCATION, "normal");
+   // glBindAttribLocation(program, TYPE_LOCATION, "type");
+
    glLinkProgram(program);
    glUseProgram(program);
-
-   glBindAttribLocation(program, POSITION_LOCATION, "position");
-   // glBindAttribLocation(program, NORMAL_LOCATION, "normal");
-   // glBindAttribLocation(program, TEXCOORD_LOCATION, "texcoord");
-   // glBindAttribLocation(program, TYPE_LOCATION, "type");
 
    /* Get the locations of the uniforms so we can access them */
    ModelViewProjectionMatrix_location = glGetUniformLocation(program, "ModelViewProjectionMatrix");
    NormalMatrix_location = glGetUniformLocation(program, "NormalMatrix");
-   LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
-   MaterialColor_location = glGetUniformLocation(program, "MaterialColor");
-   /* Set the LightSourcePosition uniform which is constant throught the program */
+   // LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
+
    glUniform4fv(LightSourcePosition_location, 1, LightSourcePosition);
 
    parse_playfield_to_strip_vertices();
-   
-   glGenBuffers(1, &VBOglobal);
-   glBindBuffer(GL_ARRAY_BUFFER, VBOglobal);
+
+
+   glGenBuffers(1, &VertexBufferID_g);
+   glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
    glBufferData(/* type */  GL_ARRAY_BUFFER,
                 /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(vertex_t),
                 /* data */  &VERTEX_BUFFER[1], // Discard first vertex, it's degenerate.
                 /* usage */ GL_STATIC_DRAW);
+
+   glGenTextures(1, &TextureID_g);
+   glBindTexture(GL_TEXTURE_2D, TextureID_g);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexImage2D(/* target */ GL_TEXTURE_2D,
+                /* level */  0,
+                /* intfmt */ GL_RED,
+                /* width */  TEXTURE_WIDTH,
+                /* height */ TEXTURE_HEIGHT,
+                /* border */ 0,
+                /* format */ GL_RED,
+                /* type */   GL_UNSIGNED_BYTE,
+                /* data */   TEXTURE);
+
+   glUniform1i(glGetUniformLocation(program, "gTexture"), 0);
+   glActiveTexture(GL_TEXTURE0);
+
 }
 
 int main(int argc, char *argv[]) {
