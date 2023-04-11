@@ -1,10 +1,24 @@
 uniform sampler2D gTexture : TEXUNIT0;
 
 float4 main(
+    unsigned char vType : TEXCOORD1,
     float2 vTexcoords : TEXCOORD0
 )
 {
     float texel = tex2D(gTexture, vTexcoords);
-    float4 Color = float4(texel,texel,texel,1);
+
+    // I=1 O=2 T=3 J=4 L=5 S=6 Z=7
+    float3 block_color;
+    if (vType == 1)      block_color = float3(0,1,1); // I
+    else if (vType == 2) block_color = float3(1,1,0); // O
+    else if (vType == 3) block_color = float3(1,0,1); // T
+    else if (vType == 4) block_color = float3(0,0,1); // J
+    else if (vType == 5) block_color = float3(1,0.33,0); // L
+    else if (vType == 6) block_color = float3(0,1,0); // S
+    else                 block_color = float3(1,0,0); // Z
+
+    block_color *= texel;
+
+    float4 Color = float4(block_color, 1);
     return Color;
 }

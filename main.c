@@ -22,7 +22,18 @@
 #define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
 
 
-static const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
+// enum tetromino_type_enum { TETROMINO_TYPE_NULL = 0,
+//                            TETROMINO_TYPE_I    = 1,
+//                            TETROMINO_TYPE_O    = 2,
+//                            TETROMINO_TYPE_T    = 3,
+//                            TETROMINO_TYPE_J    = 4,
+//                            TETROMINO_TYPE_L    = 5,
+//                            TETROMINO_TYPE_S    = 6,
+//                            TETROMINO_TYPE_Z    = 7,
+//                            TETROMINO_TYPE_QUANTITY };
+
+
+static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
 	{1,0,0,0,0,0,0,0,0,0},
 	{2,2,0,0,0,0,0,0,0,0},
 	{3,3,3,0,0,0,0,0,0,0},
@@ -33,7 +44,7 @@ static const char PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
 	{0,0,4,4,4,4,4,4,0,0},
 	{0,0,0,5,5,5,5,5,5,0},
 	{0,0,0,0,6,6,6,6,6,6},
-	{2,2,2,2,2,2,0,0,0,0},
+	{7,7,7,7,7,7,0,0,0,0},
 	{0,3,3,3,3,3,3,0,0,0},
 	{0,0,4,4,4,4,4,4,0,0},
 	{0,0,0,5,5,5,5,5,5,0},
@@ -65,13 +76,13 @@ static const uint8_t TEXTURE[TEXTURE_HEIGHT*TEXTURE_WIDTH] = {
 
 #define POSITION_LOCATION 0
 #define TEXCOORD_LOCATION 1
+#define TYPE_LOCATION 2
 // #define NORMAL_LOCATION 2
-// #define TYPE_LOCATION 3
 
 typedef struct {
-    uint16_t x, y, z;
-    uint16_t u, v;
-    // uint16_t type;
+    uint8_t x, y, z;
+    uint8_t u, v;
+    uint8_t type;
 } vertex_t;
 
 static vertex_t VERTEX_BUFFER[STRIP_VERTEX_COUNT_MAX];
@@ -90,29 +101,30 @@ void parse_playfield_to_strip_vertices() {
 		const char* row = PLAYFIELD[r--];
 
 		while (x < PLAYFIELD_WIDTH) {
-			current_is_populated = row[x] != '\0';
+			const uint8_t block = row[x];
+			current_is_populated = block != '\0';
 			x1 = x+1;
 
 			if (current_is_populated) {
 
 				if (!previous_was_populated) {
 					// Queue top left vertex twice to create a degenerate start point
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y1, .z=0, .u=0, .v=1};
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y1, .z=0, .u=0, .v=1, .type=block};
 					VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-1];
 					// Queue bottom left vertex
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0};
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0, .type=block};
 				}
 
 				// Queue top right & bottom right vertices, these are contiguous quads in the strip
-				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y1, .z=0, .u=1, .v=1};
-				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=0, .v=1};
+				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y1, .z=0, .u=1, .v=1, .type=block};
+				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=0, .v=1, .type=block};
 			}
 
 			else {  // Current is empty
 
 				if (previous_was_populated) {
 					// Queue bottom left vertex again to create a degenerate end point
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0};
+					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0, .type=block};
 				}
 
 				// Otherwise, previous empty & current empty so nothing to do
@@ -200,7 +212,7 @@ static void draw_cube(GLfloat *transform,
    glEnableVertexAttribArray(POSITION_LOCATION);
    glVertexAttribPointer(/* location */  POSITION_LOCATION,
                          /* dimension */ 3,
-                         /* type */      GL_SHORT,
+                         /* type */      GL_UNSIGNED_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(vertex_t),
                          /* pointer */   offsetof(vertex_t,x));
@@ -209,10 +221,18 @@ static void draw_cube(GLfloat *transform,
    glEnableVertexAttribArray(TEXCOORD_LOCATION);
    glVertexAttribPointer(/* location */  TEXCOORD_LOCATION,
                          /* dimension */ 2,
-                         /* type */      GL_SHORT,
+                         /* type */      GL_UNSIGNED_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(vertex_t),
                          /* pointer */   (GLvoid*)offsetof(vertex_t,u));
+
+   glEnableVertexAttribArray(TYPE_LOCATION);
+   glVertexAttribPointer(/* location */  TYPE_LOCATION,
+                         /* dimension */ 1,
+                         /* type */      GL_UNSIGNED_BYTE,
+                         /* normalize */ GL_FALSE,
+                         /* stride */    sizeof(vertex_t),
+                         /* pointer */   (GLvoid*)offsetof(vertex_t,type));
 
    glDrawArrays(/* mode */  GL_TRIANGLE_STRIP,
                 /* first */ 0,
@@ -220,6 +240,7 @@ static void draw_cube(GLfloat *transform,
 
    glDisableVertexAttribArray(POSITION_LOCATION);
    glDisableVertexAttribArray(TEXCOORD_LOCATION);
+   glDisableVertexAttribArray(TYPE_LOCATION);
 }
 
 static void cube_draw(void) {
@@ -298,8 +319,8 @@ static void cube_init(void) {
 
    glBindAttribLocation(program, POSITION_LOCATION, "position");
    glBindAttribLocation(program, TEXCOORD_LOCATION, "texcoord");
+   glBindAttribLocation(program, TYPE_LOCATION, "type");
    // glBindAttribLocation(program, NORMAL_LOCATION, "normal");
-   // glBindAttribLocation(program, TYPE_LOCATION, "type");
 
    glLinkProgram(program);
    glUseProgram(program);
