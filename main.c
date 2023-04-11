@@ -7,9 +7,11 @@
 #include <unistd.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <vitasdk.h>
 #include <vitaGL.h>
 #include "linalg.h"
+#include "pgm.h"
 
 #define DISPLAY_WIDTH 960
 #define DISPLAY_HEIGHT 544
@@ -21,16 +23,6 @@
 #define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
 #define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
 
-
-// enum tetromino_type_enum { TETROMINO_TYPE_NULL = 0,
-//                            TETROMINO_TYPE_I    = 1,
-//                            TETROMINO_TYPE_O    = 2,
-//                            TETROMINO_TYPE_T    = 3,
-//                            TETROMINO_TYPE_J    = 4,
-//                            TETROMINO_TYPE_L    = 5,
-//                            TETROMINO_TYPE_S    = 6,
-//                            TETROMINO_TYPE_Z    = 7,
-//                            TETROMINO_TYPE_QUANTITY };
 
 
 static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
@@ -55,24 +47,6 @@ static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
 	{0,0,0,0,0,0,0,0,2,2},
 	{0,0,0,0,0,0,0,0,0,1},
 };
-
-#define TEXTURE_HEIGHT 12
-#define TEXTURE_WIDTH 12
-static const uint8_t TEXTURE[TEXTURE_HEIGHT*TEXTURE_WIDTH] = {
-	250,244,238,232,226,220,215,209,204,199,193,66,
-	244,87,97,106,116,127,138,149,161,173,185,60,
-	238,97,106,116,127,138,149,161,173,185,87,55,
-	232,106,116,127,138,149,161,173,185,87,97,49,
-	226,116,127,138,149,161,173,185,87,97,106,44,
-	220,127,138,149,161,173,185,87,97,106,116,38,
-	215,138,149,161,173,185,87,97,106,116,127,32,
-	209,149,161,173,185,87,97,106,116,127,138,27,
-	204,161,173,185,87,97,106,116,127,138,149,21,
-	199,173,185,87,97,106,116,127,138,149,161,16,
-	193,185,87,97,106,116,127,138,149,161,173,10,
-	66,60,55,49,44,38,32,27,21,16,10,5,
-};
-
 
 #define POSITION_LOCATION 0
 #define TEXCOORD_LOCATION 1
@@ -342,6 +316,17 @@ static void cube_init(void) {
                 /* data */  &VERTEX_BUFFER[1], // Discard first vertex, it's degenerate.
                 /* usage */ GL_STATIC_DRAW);
 
+
+
+   /* Load block image texture and bind to openGL */
+   unsigned int texture_width, texture_height;
+   uint8_t* texture_pixels;
+   int pgm_error = pgm_load_image("app0:block.pgm", &texture_pixels,
+                                  					&texture_width,
+                                  					&texture_height);
+   if (pgm_error) printf("pgm_read_image_metadata error: %d\n", pgm_error);
+   else printf("Read block.pgm width=%d height=%d \n\n", texture_width, texture_height);
+
    glGenTextures(1, &TextureID_g);
    glBindTexture(GL_TEXTURE_2D, TextureID_g);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -351,12 +336,13 @@ static void cube_init(void) {
    glTexImage2D(/* target */ GL_TEXTURE_2D,
                 /* level */  0,
                 /* intfmt */ GL_RED,
-                /* width */  TEXTURE_WIDTH,
-                /* height */ TEXTURE_HEIGHT,
+                /* width */  texture_width,
+                /* height */ texture_height,
                 /* border */ 0,
                 /* format */ GL_RED,
                 /* type */   GL_UNSIGNED_BYTE,
-                /* data */   TEXTURE);
+                /* data */   texture_pixels);
+   free(texture_pixels);
 
    glUniform1i(glGetUniformLocation(program, "gTexture"), 0);
    glActiveTexture(GL_TEXTURE0);
