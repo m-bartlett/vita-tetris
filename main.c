@@ -121,17 +121,6 @@ void parse_playfield_to_strip_vertices() {
 }
 
 
-static GLuint VertexBufferID_g, TextureID_g;
-static GLfloat view_rot[3] = { 20.0, 30.0, 0.0 };
-static GLfloat angle = 0.0;
-static GLuint ModelViewProjectionMatrix_location,
-              NormalMatrix_location,
-              LightSourcePosition_location,
-              MaterialColor_location;
-static GLfloat ProjectionMatrix[16];
-static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
-
-
 void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
    FILE *f = fopen(shader_path, "r");
    if (!f) {printf("Shader error\n\n"); return; }
@@ -152,34 +141,47 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
    glAttachShader(*program, shader_ref);
 }
 
+static GLuint VertexBufferID_g, TextureID_g;
+static GLfloat view_rot[3] = { 0.0, 0.0, 0.0 };
+static GLuint ModelMatrix_location,
+			  NormalMatrix_location,
+			  ProjectionMatrix_location,
+			  LightSourcePosition_location;
+static GLfloat ProjectionMatrix[16];
+static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
 
-static void draw_cube(GLfloat *transform,
-                      GLfloat x,
-                      GLfloat y,
-                      GLfloat angle,
-                      const GLfloat color[4]) {
-   GLfloat model_view[16];
-   GLfloat normal_matrix[16];
-   GLfloat model_view_projection[16];
+static void cube_draw() {
+   GLfloat model_matrix[16], view_matrix[16], normal_matrix[16], projection_matrix[16];
 
-   /* Translate and rotate the cube */
-                 
-   memcpy(model_view, transform, sizeof (model_view));
-   translate(model_view, x, y, 0);
-   rotate(model_view, 2 * M_PI * angle / 360.0, 0, 0, 1);
+   /* Translate and rotate the view */
+   identity(view_matrix);
+   translate(view_matrix, 0, 0, -20);
+   translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+   // rotate(view_matrix, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
+   // rotate(view_matrix, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
+   // rotate(view_matrix, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
 
-   /* Create and set the ModelViewProjectionMatrix */
-   memcpy(model_view_projection, ProjectionMatrix, sizeof(model_view_projection));
-   multiply(model_view_projection, model_view);
+   identity(model_matrix);
+   translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
+   rotate(model_matrix, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
+   rotate(model_matrix, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
+   rotate(model_matrix, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
+   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+   // multiply(model_matrix, view_matrix);
+   glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, model_matrix);
 
-   glUniformMatrix4fv(ModelViewProjectionMatrix_location, 1, GL_FALSE,
-                      model_view_projection);
+   /* Create and set the ProjectionMatrix */
+   memcpy(projection_matrix, ProjectionMatrix, sizeof(projection_matrix));
+   multiply(projection_matrix, view_matrix);
+   glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, projection_matrix);
 
-   memcpy(normal_matrix, model_view, sizeof (normal_matrix));
+   memcpy(normal_matrix, view_matrix, sizeof (normal_matrix));
    invert(normal_matrix);
    transpose(normal_matrix);
-
    glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
+
+
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
 
@@ -208,31 +210,11 @@ static void draw_cube(GLfloat *transform,
                          /* stride */    sizeof(vertex_t),
                          /* pointer */   (GLvoid*)offsetof(vertex_t,type));
 
-   glDrawArrays(/* mode */  GL_TRIANGLE_STRIP,
-                /* first */ 0,
-                /* count */ (VERTEX_BUFFER_SIZE-1));
+   glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP, /*first=*/0, /*count=*/(VERTEX_BUFFER_SIZE-1));
 
    glDisableVertexAttribArray(POSITION_LOCATION);
    glDisableVertexAttribArray(TEXCOORD_LOCATION);
    glDisableVertexAttribArray(TYPE_LOCATION);
-}
-
-static void cube_draw(void) {
-   const static GLfloat color[4] = { 1.0, 0.0, 0.4, 1.0 };
-   GLfloat transform[16];
-   identity(transform);
-
-   glClearColor(0.1, 0.1, 0.1, 1.0);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-   /* Translate and rotate the view */
-   translate(transform, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, -20);
-   rotate(transform, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
-   rotate(transform, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
-   rotate(transform, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
-
-   /* Draw the cube */
-   draw_cube(transform, 0, 0, angle, color);
 
    vglSwapBuffers(GL_FALSE);
 }
@@ -242,7 +224,7 @@ static void cube_reshape(int width, int height) {
    glViewport(0, 0, (GLint) width, (GLint) height);
 }
 
-static void cube_special(int special, int crap, int morecrap) {
+static inline void read_input() {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
    if (pad.buttons & SCE_CTRL_LEFT)  view_rot[1] += 5.0;
@@ -251,41 +233,12 @@ static void cube_special(int special, int crap, int morecrap) {
    if (pad.buttons & SCE_CTRL_DOWN)  view_rot[0] -= 5.0;
 }
 
-static void cube_idle(void) {
-   static int frames = 0;
-   static double tRot0 = -1.0, tRate0 = -1.0;
-   double dt, t = (double)sceKernelGetProcessTimeWide() / 1000000.0;
-
-   if (tRot0 < 0.0) tRot0 = t;
-   dt = t - tRot0;
-   tRot0 = t;
-
-   /* advance rotation for next frame */
-   angle += 70.0 * dt;  /* 70 degrees per second */
-   if (angle > 3600.0) angle -= 3600.0;
-
-   cube_special(0, 0, 0);
-   cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-   cube_draw();
-   frames++;
-
-   if (tRate0 < 0.0)
-      tRate0 = t;
-   if (t - tRate0 >= 5.0) {
-      GLfloat seconds = t - tRate0;
-      GLfloat fps = frames / seconds;
-      printf("%d frames in %3.1f seconds = %6.3f FPS\n", frames, seconds,
-            fps);
-      tRate0 = t;
-      frames = 0;
-   }
-}
-
 
 static void cube_init(void) {
    // glEnable(GL_CULL_FACE);
    glFrontFace(GL_CCW); 
    glEnable(GL_DEPTH_TEST);
+   glClearColor(0.1, 0.1, 0.1, 1.0);
 
    GLuint program = glCreateProgram();
    load_shader("app0:vertex.cg", GL_VERTEX_SHADER, &program);
@@ -300,14 +253,13 @@ static void cube_init(void) {
    glUseProgram(program);
 
    /* Get the locations of the uniforms so we can access them */
-   ModelViewProjectionMatrix_location = glGetUniformLocation(program, "ModelViewProjectionMatrix");
-   NormalMatrix_location = glGetUniformLocation(program, "NormalMatrix");
-   // LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
-
+   ModelMatrix_location         = glGetUniformLocation(program, "ModelMatrix");
+   ProjectionMatrix_location    = glGetUniformLocation(program, "ProjectionMatrix");
+   NormalMatrix_location        = glGetUniformLocation(program, "NormalMatrix");
+   LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
    glUniform4fv(LightSourcePosition_location, 1, LightSourcePosition);
 
    parse_playfield_to_strip_vertices();
-
 
    glGenBuffers(1, &VertexBufferID_g);
    glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
@@ -315,8 +267,6 @@ static void cube_init(void) {
                 /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(vertex_t),
                 /* data */  &VERTEX_BUFFER[1], // Discard first vertex, it's degenerate.
                 /* usage */ GL_STATIC_DRAW);
-
-
 
    /* Load block image texture and bind to openGL */
    unsigned int texture_width, texture_height;
@@ -358,7 +308,7 @@ int main(int argc, char *argv[]) {
    cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
    while(1) {
-   	cube_special(0,0,0);
+   	read_input();
    	cube_draw();
    	// cube_idle();
    }
