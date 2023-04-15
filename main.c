@@ -20,33 +20,58 @@
 
 #define PLAYFIELD_WIDTH 10
 #define PLAYFIELD_HEIGHT 20
-#define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
-#define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
+// #define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
+// #define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
 
 
 
 static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
-	{1,0,0,0,0,0,0,0,0,0},
-	{2,2,0,0,0,0,0,0,0,0},
-	{3,3,3,0,0,0,0,0,0,0},
-	{4,4,4,4,0,0,0,0,0,0},
-	{5,5,5,5,5,0,0,0,0,0},
-	{6,6,6,6,6,6,0,0,0,0},
-	{0,3,3,3,3,3,3,0,0,0},
-	{0,0,4,4,4,4,4,4,0,0},
-	{0,0,0,5,5,5,5,5,5,0},
-	{0,0,0,0,6,6,6,6,6,6},
-	{7,7,7,7,7,7,0,0,0,0},
-	{0,3,3,3,3,3,3,0,0,0},
-	{0,0,4,4,4,4,4,4,0,0},
-	{0,0,0,5,5,5,5,5,5,0},
-	{0,0,0,0,6,6,6,6,6,6},
-	{0,0,0,0,0,5,5,5,5,5},
-	{0,0,0,0,0,0,4,4,4,4},
-	{0,0,0,0,0,0,0,3,3,3},
-	{0,0,0,0,0,0,0,0,2,2},
-	{0,0,0,0,0,0,0,0,0,1},
+ {1,0,0,0,0,0,0,0,0,0},
+ {2,3,0,0,0,0,0,0,0,0},
+ {4,0,6,0,0,0,0,0,0,0},
+ {7,1,2,3,0,0,0,0,0,0},
+ {4,0,6,0,1,0,0,0,0,0},
+ {2,3,4,5,6,7,0,0,0,0},
+ {0,1,2,3,4,5,6,0,0,0},
+ {0,0,7,1,2,3,4,5,0,0},
+ {0,0,0,6,7,1,2,3,4,0},
+ {0,0,0,0,5,6,7,1,2,3},
+ {0,5,6,7,1,2,0,0,0,0},
+ {1,3,4,5,6,7,1,0,0,0},
+ {0,1,0,3,0,5,0,7,0,0},
+ {0,0,0,2,0,4,0,6,0,3},
+ {0,0,0,0,7,1,2,3,4,5},
+ {0,0,0,0,0,6,7,1,2,3},
+ {0,0,0,0,0,0,4,5,6,7},
+ {0,0,0,0,0,0,0,1,2,3},
+ {0,0,0,0,0,0,0,0,4,5},
+ {0,0,0,0,0,0,0,0,0,6},
 };
+
+
+// static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,0,0,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,2,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+//     {2,0,2,2,2,2,2,2,2,2},
+// };
+
 
 #define POSITION_LOCATION 0
 #define TEXCOORD_LOCATION 1
@@ -56,68 +81,96 @@ static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
 typedef struct {
     uint8_t x, y, z;
     uint8_t u, v;
-    uint8_t type;
+    uint8_t block, face;
 } vertex_t;
 
-static vertex_t VERTEX_BUFFER[STRIP_VERTEX_COUNT_MAX];
-static uint16_t VERTEX_BUFFER_SIZE=0;
+enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4 };
 
+
+#define PLAYFIELD_VERTEX_COUNT_MAX (300*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
+static vertex_t VERTEX_BUFFER[PLAYFIELD_VERTEX_COUNT_MAX];
+static uint32_t VERTEX_BUFFER_SIZE=0;
 
 void parse_playfield_to_strip_vertices() {
-	uint16_t vertex_index = 0;
-	GLboolean current_is_populated, previous_was_populated;
-	uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
+    GLboolean current_is_populated, previous_was_populated;
+    uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
 
-	while (y < PLAYFIELD_HEIGHT) {
-		previous_was_populated = GL_FALSE;
-		y1 = y+1;
-		x = 0;
-		const char* row = PLAYFIELD[r--];
+    while (y < PLAYFIELD_HEIGHT) {
+        y1 = y+1;
+        x = 0;
+        const char* row = PLAYFIELD[r--];
 
-		while (x < PLAYFIELD_WIDTH) {
-			const uint8_t block = row[x];
-			current_is_populated = block != '\0';
-			x1 = x+1;
+        while (x < PLAYFIELD_WIDTH) {
+            const uint8_t B = row[x];
+            x1 = x+1;
+            if (B != 0) {
 
-			if (current_is_populated) {
+            	#define ADD_VERTEX(...) VERTEX_BUFFER[VERTEX_BUFFER_SIZE++]=(vertex_t){__VA_ARGS__}
+                
+                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0,.v=0,.type=B); //FBL
+                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0,.v=0,.type=B); //FBL2
+                // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0,.v=1,.type=B); //FTL
+                // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=1,.v=0,.type=B); //FBR
+                // ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=1,.v=1,.type=B); //FTR
 
-				if (!previous_was_populated) {
-					// Queue top left vertex twice to create a degenerate start point
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y1, .z=0, .u=0, .v=1, .type=block};
-					VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-1];
-					// Queue bottom left vertex
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0, .type=block};
-				}
+                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1,.v=2,.type=B); //BTR
+                // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0,.v=1,.type=B); //FTL
+                // ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0,.v=2,.type=B); //BTL
 
-				// Queue top right & bottom right vertices, these are contiguous quads in the strip
-				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y1, .z=0, .u=1, .v=1, .type=block};
-				VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x1, .y=y, .z=0, .u=0, .v=1, .type=block};
-			}
+                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1,.v=1,.type=B); //FBL
+                // ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1,.v=2,.type=B); //BBL
 
-			else {  // Current is empty
+                // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2,.v=1,.type=B); //FBR
+                // ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=2,.v=2,.type=B); //BBR
 
-				if (previous_was_populated) {
-					// Queue bottom left vertex again to create a degenerate end point
-					VERTEX_BUFFER[vertex_index++] = (vertex_t){.x=x, .y=y, .z=0, .u=0, .v=0, .type=block};
-				}
+                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3,.v=2,.type=B); //BTR
+                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3,.v=2,.type=B); //BTR2
 
-				// Otherwise, previous empty & current empty so nothing to do
-			}
+                ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0, .v=0, .block=B, .face=FACE_FRONT);
+                ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0, .v=1, .block=B, .face=FACE_FRONT);
+                ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=1, .v=1, .block=B, .face=FACE_FRONT);
 
-			previous_was_populated = current_is_populated;
-			x = x1;
-		}
+                ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0, .v=0, .block=B, .face=FACE_FRONT);
+                ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=1, .v=1, .block=B, .face=FACE_FRONT);
+                ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=1, .v=0, .block=B, .face=FACE_FRONT);
 
-		if (previous_was_populated) {
-			// If the last square in the row was populated, manually add a final degenerate vertex
-		    VERTEX_BUFFER[vertex_index++] = VERTEX_BUFFER[vertex_index-1];
-		}
+                ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=0, .block=B, .face=FACE_LEFT);
+                ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0, .v=1, .block=B, .face=FACE_LEFT);
+                ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=1, .block=B, .face=FACE_LEFT);
 
-		y = y1;
-	}
+                ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=0, .block=B, .face=FACE_LEFT);
+                ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=1, .block=B, .face=FACE_LEFT);
+                ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=0, .block=B, .face=FACE_LEFT);
 
-	vertex_index--; // last vertex is ignorable degenerate restart
-	VERTEX_BUFFER_SIZE = vertex_index;
+                ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=0, .v=0, .block=B, .face=FACE_RIGHT);
+                ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=0, .v=1, .block=B, .face=FACE_RIGHT);
+                ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1, .v=1, .block=B, .face=FACE_RIGHT);
+
+                ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=0, .v=0, .block=B, .face=FACE_RIGHT);
+                ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1, .v=1, .block=B, .face=FACE_RIGHT);
+                ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=1, .v=0, .block=B, .face=FACE_RIGHT);
+
+                ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0, .v=0, .block=B, .face=FACE_TOP);
+                ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0, .v=1, .block=B, .face=FACE_TOP);
+                ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1, .v=1, .block=B, .face=FACE_TOP);
+
+                ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0, .v=0, .block=B, .face=FACE_TOP);
+                ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1, .v=1, .block=B, .face=FACE_TOP);
+                ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=1, .v=0, .block=B, .face=FACE_TOP);
+
+                ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=0, .block=B, .face=FACE_BOTTOM);
+                ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0, .v=1, .block=B, .face=FACE_BOTTOM);
+                ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_BOTTOM);
+
+                ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=0, .block=B, .face=FACE_BOTTOM);
+                ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_BOTTOM);
+                ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=1, .v=0, .block=B, .face=FACE_BOTTOM);
+
+            }
+            x = x1;
+        }
+        y = y1;
+    }
 }
 
 
@@ -142,11 +195,11 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
 }
 
 static GLuint VertexBufferID_g, TextureID_g;
-static GLfloat view_rot[3] = { 0.0, 0.0, 0.0 };
+static GLfloat user_offset[3] = { 0.0, 0.0, 0.0 };
 static GLuint ModelMatrix_location,
-			  NormalMatrix_location,
-			  ProjectionMatrix_location,
-			  LightSourcePosition_location;
+              NormalMatrix_location,
+              ProjectionMatrix_location,
+              LightSourcePosition_location;
 static GLfloat ProjectionMatrix[16];
 static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
 
@@ -156,17 +209,18 @@ static void cube_draw() {
    /* Translate and rotate the view */
    identity(view_matrix);
    translate(view_matrix, 0, 0, -20);
+   // rotate(view_matrix, 2 * M_PI * -90.0 / 360.0, 0, 1, 0);
    translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
-   // rotate(view_matrix, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
-   // rotate(view_matrix, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
-   // rotate(view_matrix, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
+   // rotate(view_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
+   // rotate(view_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
+   // rotate(view_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
 
    identity(model_matrix);
    translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
-   rotate(model_matrix, 2 * M_PI * view_rot[0] / 360.0, 1, 0, 0);
-   rotate(model_matrix, 2 * M_PI * view_rot[1] / 360.0, 0, 1, 0);
-   rotate(model_matrix, 2 * M_PI * view_rot[2] / 360.0, 0, 0, 1);
-   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+   rotate(model_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
+   rotate(model_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
+   // rotate(model_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
+   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
    // multiply(model_matrix, view_matrix);
    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, model_matrix);
 
@@ -191,8 +245,8 @@ static void cube_draw() {
                          /* type */      GL_UNSIGNED_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(vertex_t),
-                         /* pointer */   offsetof(vertex_t,x));
-                         	  // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
+                         /* pointer */   (GLvoid*)offsetof(vertex_t,x));
+                              // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
 
    glEnableVertexAttribArray(TEXCOORD_LOCATION);
    glVertexAttribPointer(/* location */  TEXCOORD_LOCATION,
@@ -204,13 +258,14 @@ static void cube_draw() {
 
    glEnableVertexAttribArray(TYPE_LOCATION);
    glVertexAttribPointer(/* location */  TYPE_LOCATION,
-                         /* dimension */ 1,
+                         /* dimension */ 2,
                          /* type */      GL_UNSIGNED_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(vertex_t,type));
+                         /* pointer */   (GLvoid*)offsetof(vertex_t,block));
 
-   glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP, /*first=*/0, /*count=*/(VERTEX_BUFFER_SIZE-1));
+   // glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP, /*first=*/0, /*count=*/(VERTEX_BUFFER_SIZE-1));
+   glDrawArrays(/*mode=*/GL_TRIANGLES, /*first=*/0, /*count=*/VERTEX_BUFFER_SIZE);
 
    glDisableVertexAttribArray(POSITION_LOCATION);
    glDisableVertexAttribArray(TEXCOORD_LOCATION);
@@ -227,16 +282,20 @@ static void cube_reshape(int width, int height) {
 static inline void read_input() {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
-   if (pad.buttons & SCE_CTRL_LEFT)  view_rot[1] += 5.0;
-   if (pad.buttons & SCE_CTRL_RIGHT) view_rot[1] -= 5.0;
-   if (pad.buttons & SCE_CTRL_UP)    view_rot[0] += 5.0;
-   if (pad.buttons & SCE_CTRL_DOWN)  view_rot[0] -= 5.0;
+   if (pad.buttons & SCE_CTRL_LEFT)  user_offset[1] += 5.0;
+   if (pad.buttons & SCE_CTRL_RIGHT) user_offset[1] -= 5.0;
+   if (pad.buttons & SCE_CTRL_UP)    user_offset[0] += 5.0;
+   if (pad.buttons & SCE_CTRL_DOWN)  user_offset[0] -= 5.0;
+   if (pad.buttons & SCE_CTRL_CROSS)  user_offset[2] -= 0.5;
+   if (pad.buttons & SCE_CTRL_SQUARE) user_offset[2] += 0.5;
+   // SCE_CTRL_CIRCLE
+   // SCE_CTRL_TRIANGLE
 }
 
 
 static void cube_init(void) {
-   // glEnable(GL_CULL_FACE);
-   glFrontFace(GL_CCW); 
+   glEnable(GL_CULL_FACE);
+   glFrontFace(GL_CW); 
    glEnable(GL_DEPTH_TEST);
    glClearColor(0.1, 0.1, 0.1, 1.0);
 
@@ -264,16 +323,16 @@ static void cube_init(void) {
    glGenBuffers(1, &VertexBufferID_g);
    glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
    glBufferData(/* type */  GL_ARRAY_BUFFER,
-                /* size */  (VERTEX_BUFFER_SIZE-1) * sizeof(vertex_t),
-                /* data */  &VERTEX_BUFFER[1], // Discard first vertex, it's degenerate.
+                /* size */  VERTEX_BUFFER_SIZE * sizeof(vertex_t),
+                /* data */  VERTEX_BUFFER,
                 /* usage */ GL_STATIC_DRAW);
 
    /* Load block image texture and bind to openGL */
    unsigned int texture_width, texture_height;
    uint8_t* texture_pixels;
    int pgm_error = pgm_load_image("app0:block.pgm", &texture_pixels,
-                                  					&texture_width,
-                                  					&texture_height);
+                                                    &texture_width,
+                                                    &texture_height);
    if (pgm_error) printf("pgm_read_image_metadata error: %d\n", pgm_error);
    else printf("Read block.pgm width=%d height=%d \n\n", texture_width, texture_height);
 
@@ -308,9 +367,9 @@ int main(int argc, char *argv[]) {
    cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
    while(1) {
-   	read_input();
-   	cube_draw();
-   	// cube_idle();
+    read_input();
+    cube_draw();
+    // cube_idle();
    }
 
    return 0;

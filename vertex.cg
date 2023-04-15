@@ -1,31 +1,39 @@
-// struct vertex
-// {
-//    float3 position;
-//    float2 texel;
-// };
-
 uniform float4x4 ModelMatrix;
 uniform float4x4 ProjectionMatrix;
 uniform float4x4 NormalMatrix;
-uniform float4 LightSourcePosition;
+uniform float4 LightSourcePosition; // TODO: float3
 
 void main(
-float3 position,
-// float3 normal,
-float2 texcoord,
-unsigned char type,
-float2 out vTexcoords : TEXCOORD0,
-float4 out gl_Position : POSITION,
-unsigned char out vType : TEXCOORD1
+    float3 position,
+    float2 texcoord,
+    unsigned char2 type,
+    float4 out gl_Position : POSITION,
+    float2 out f_texcoord : TEXCOORD0,
+    unsigned char out f_block_type : TEXCOORD1,
+    float out f_diffusion : TEXCOORD2
 ) {
+    unsigned char block_type = type.x;
+    unsigned char face_type = type.y;
+
     float4 mvPosition = mul(float4(position, 1.0f), ModelMatrix);
-    float3 normal = float3(0,0,1);
-    float3 N = normalize(mul(float4(normal,1), NormalMatrix).xyz);
-    float3 L = normalize(LightSourcePosition.xyz);
-    float diffuse = max(dot(N, L), 0.1);
-    // vTexcoords =float2(texcoord);
-    vTexcoords =float2(position.xy);
-    vType = type;
+
+    float3 normal;
+         if (face_type == 1) normal = float3(0,1,0);  // top
+    else if (face_type == 2) normal = float3(1,0,0);  // right
+    else if (face_type == 3) normal = float3(0,-1,0); // bottom
+    else if (face_type == 4) normal = float3(-1,0,0); // left
+    else                     normal = float3(0,0,-1);  // front
+
+    // normal *= normalizemvPosition.xyz;
+    normal = normalize(mul(float4(normal,1), ModelMatrix).xyz);
+    normal = normalize(mul(float4(normal,1), NormalMatrix).xyz);
+    float3 N = normal;
+    // float3 L = normalize(LightSourcePosition.xyz);
+    float4 L = normalize(float4(1,1,1,1));
+
+    f_texcoord = texcoord;
+    f_block_type = type;
+    f_diffusion = max(dot(N, L), 0.1); // TODO: move max() to frag shader
 
     gl_Position = mul(mvPosition, ProjectionMatrix);
 }
