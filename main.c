@@ -87,7 +87,7 @@ typedef struct {
 enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4 };
 
 
-#define PLAYFIELD_VERTEX_COUNT_MAX (300*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
+#define PLAYFIELD_VERTEX_COUNT_MAX (6*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
 static vertex_t VERTEX_BUFFER[PLAYFIELD_VERTEX_COUNT_MAX];
 static uint32_t VERTEX_BUFFER_SIZE=0;
 
@@ -106,25 +106,6 @@ void parse_playfield_to_strip_vertices() {
             if (B != 0) {
 
             	#define ADD_VERTEX(...) VERTEX_BUFFER[VERTEX_BUFFER_SIZE++]=(vertex_t){__VA_ARGS__}
-                
-                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0,.v=0,.type=B); //FBL
-                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0,.v=0,.type=B); //FBL2
-                // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0,.v=1,.type=B); //FTL
-                // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=1,.v=0,.type=B); //FBR
-                // ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=1,.v=1,.type=B); //FTR
-
-                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=1,.v=2,.type=B); //BTR
-                // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0,.v=1,.type=B); //FTL
-                // ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0,.v=2,.type=B); //BTL
-
-                // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1,.v=1,.type=B); //FBL
-                // ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1,.v=2,.type=B); //BBL
-
-                // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2,.v=1,.type=B); //FBR
-                // ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=2,.v=2,.type=B); //BBR
-
-                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3,.v=2,.type=B); //BTR
-                // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3,.v=2,.type=B); //BTR2
 
                 ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=0, .v=0, .block=B, .face=FACE_FRONT);
                 ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=0, .v=1, .block=B, .face=FACE_FRONT);
@@ -201,7 +182,7 @@ static GLuint ModelMatrix_location,
               ProjectionMatrix_location,
               LightSourcePosition_location;
 static GLfloat ProjectionMatrix[16];
-static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
+static const GLfloat LightSourcePosition[3] = { 0.0, 0.0, 10.0};
 
 static void cube_draw() {
    GLfloat model_matrix[16], view_matrix[16], normal_matrix[16], projection_matrix[16];
@@ -210,7 +191,7 @@ static void cube_draw() {
    identity(view_matrix);
    translate(view_matrix, 0, 0, -20);
    // rotate(view_matrix, 2 * M_PI * -90.0 / 360.0, 0, 1, 0);
-   translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+   translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
    // rotate(view_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
    // rotate(view_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
    // rotate(view_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
@@ -220,7 +201,7 @@ static void cube_draw() {
    rotate(model_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
    rotate(model_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
    // rotate(model_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
-   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
+   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
    // multiply(model_matrix, view_matrix);
    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, model_matrix);
 
@@ -294,9 +275,9 @@ static inline void read_input() {
 
 
 static void cube_init(void) {
+   glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
    glFrontFace(GL_CW); 
-   glEnable(GL_DEPTH_TEST);
    glClearColor(0.1, 0.1, 0.1, 1.0);
 
    GLuint program = glCreateProgram();
@@ -316,7 +297,7 @@ static void cube_init(void) {
    ProjectionMatrix_location    = glGetUniformLocation(program, "ProjectionMatrix");
    NormalMatrix_location        = glGetUniformLocation(program, "NormalMatrix");
    LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
-   glUniform4fv(LightSourcePosition_location, 1, LightSourcePosition);
+   glUniform3fv(LightSourcePosition_location, 1, LightSourcePosition);
 
    parse_playfield_to_strip_vertices();
 
@@ -340,8 +321,8 @@ static void cube_init(void) {
    glBindTexture(GL_TEXTURE_2D, TextureID_g);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
    glTexImage2D(/* target */ GL_TEXTURE_2D,
                 /* level */  0,
                 /* intfmt */ GL_RED,

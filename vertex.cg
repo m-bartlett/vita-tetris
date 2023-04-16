@@ -1,16 +1,20 @@
 uniform float4x4 ModelMatrix;
 uniform float4x4 ProjectionMatrix;
 uniform float4x4 NormalMatrix;
-uniform float4 LightSourcePosition; // TODO: float3
+uniform float3 LightSourcePosition;
+
+struct fragment_t {
+    float2 texcoord;
+    unsigned char block_type;
+    float diffusion;
+};
 
 void main(
     float3 position,
     float2 texcoord,
     unsigned char2 type,
     float4 out gl_Position : POSITION,
-    float2 out f_texcoord : TEXCOORD0,
-    unsigned char out f_block_type : TEXCOORD1,
-    float out f_diffusion : TEXCOORD2
+    fragment_t out fragment : TEXCOORD0
 ) {
     unsigned char block_type = type.x;
     unsigned char face_type = type.y;
@@ -22,18 +26,23 @@ void main(
     else if (face_type == 2) normal = float3(1,0,0);  // right
     else if (face_type == 3) normal = float3(0,-1,0); // bottom
     else if (face_type == 4) normal = float3(-1,0,0); // left
-    else                     normal = float3(0,0,-1);  // front
+    else                     normal = float3(0,0,1); // front
 
-    // normal *= normalizemvPosition.xyz;
+    // normal = float3(texcoord.x, texcoord.y, position.z);
+
+    // normal *= mvosition;
     normal = normalize(mul(float4(normal,1), ModelMatrix).xyz);
     normal = normalize(mul(float4(normal,1), NormalMatrix).xyz);
-    float3 N = normal;
-    // float3 L = normalize(LightSourcePosition.xyz);
-    float4 L = normalize(float4(1,1,1,1));
 
-    f_texcoord = texcoord;
-    f_block_type = type;
-    f_diffusion = max(dot(N, L), 0.1); // TODO: move max() to frag shader
+    float3 N = normal;
+    // float3 L = normalize(-LightSourcePosition);
+    // float3 L = normalize(mul(float4(-LightSourcePosition,1), ModelMatrix).xyz);
+    float3 L = normalize(LightSourcePosition-mvPosition);
+
+
+    float diffusion = dot(N, L);
+
+    fragment = fragment_t(texcoord, block_type, diffusion);
 
     gl_Position = mul(mvPosition, ProjectionMatrix);
 }

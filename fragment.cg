@@ -1,23 +1,32 @@
 uniform sampler2D gTexture : TEXUNIT0;
 
+struct fragment_t {
+    float2 texcoord;
+    unsigned char block_type;
+    float diffusion;
+};
+
 float4 main(
-    float2 f_texcoord : TEXCOORD0,
-    unsigned char f_block_type : TEXCOORD1,
-    float f_diffusion : TEXCOORD2
+    fragment_t fragment : TEXCOORD0
 ) {
 
-    float texel = tex2D(gTexture, f_texcoord);
+    float texel = tex2D(gTexture, fragment.texcoord);
 
-    float3 block_color;
-         if (f_block_type == 1) block_color = float3(0.0,1.0,1.0); // I
-    else if (f_block_type == 2) block_color = float3(1.0,1.0,0.0); // O
-    else if (f_block_type == 3) block_color = float3(1.0,0.0,1.0); // T
-    else if (f_block_type == 4) block_color = float3(0.0,0.0,1.0); // J
-    else if (f_block_type == 5) block_color = float3(1.0,0.5,0.0); // L
-    else if (f_block_type == 6) block_color = float3(0.0,1.0,0.0); // S
-    else                        block_color = float3(1.0,0.0,0.0); // Z
+    // else if (fragment.block_type == 3) block_color = float3(0.75,0,1); // T
+    float3 color;
+         if (fragment.block_type == 1) color = float3(0,1,0.95); // I
+    else if (fragment.block_type == 2) color = float3(1,1,0); // O
+    else if (fragment.block_type == 3) color = float3(0.8,0,1.0); // T
+    else if (fragment.block_type == 4) color = float3(0,0.4,1); // J
+    else if (fragment.block_type == 5) color = float3(1,0.5,0); // L
+    else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
+    else                               color = float3(1,0,0); // Z
 
-    // float3 color = texel * f_diffusion * block_color;
-    float3 color = texel * block_color;
+    // float diffusion = max(fragment.diffusion, 0.1);
+    float diffusion = abs(fragment.diffusion);
+
+    color *= texel * diffusion;
+    // float3 color = block_color;
+    // float3 color = float3(1,0,1)*texel;
     return float4(color, 1);
 }
