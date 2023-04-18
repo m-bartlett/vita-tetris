@@ -20,24 +20,21 @@
 
 #define PLAYFIELD_WIDTH 10
 #define PLAYFIELD_HEIGHT 20
-// #define ROW_STRIP_VERTEX_COUNT_MAX (6*(PLAYFIELD_WIDTH/2) + 4*(PLAYFIELD_WIDTH%2) + 1)
-// #define STRIP_VERTEX_COUNT_MAX (ROW_STRIP_VERTEX_COUNT_MAX * PLAYFIELD_HEIGHT * 3)
-
 
 
 static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
- {1,0,0,0,0,0,0,0,0,0},
+ {1,0,0,0,0,0,0,0,0,3},
  {2,3,0,0,0,0,0,0,0,0},
  {4,0,6,0,0,0,0,0,0,0},
  {7,1,2,3,0,0,0,0,0,0},
  {4,0,6,0,1,0,0,0,0,0},
- {2,3,4,5,6,7,0,0,0,0},
- {0,1,2,3,4,5,6,0,0,0},
+ {2,3,0,5,6,7,0,0,0,0},
+ {0,1,2,3,0,5,6,0,0,0},
  {0,0,7,1,2,3,4,5,0,0},
  {0,0,0,6,7,1,2,3,4,0},
  {0,0,0,0,5,6,7,1,2,3},
  {0,5,6,7,1,2,0,0,0,0},
- {1,3,4,5,6,7,1,0,0,0},
+ {1,3,0,5,6,7,1,0,0,0},
  {0,1,0,3,0,5,0,7,0,0},
  {0,0,0,2,0,4,0,6,0,3},
  {0,0,0,0,7,1,2,3,4,5},
@@ -91,7 +88,7 @@ enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT 
 static vertex_t VERTEX_BUFFER[PLAYFIELD_VERTEX_COUNT_MAX];
 static uint32_t VERTEX_BUFFER_SIZE=0;
 
-void parse_playfield_to_strip_vertices() {
+void parse_playfield_to_triangles() {
     GLboolean current_is_populated, previous_was_populated;
     uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
 
@@ -176,45 +173,42 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
 }
 
 static GLuint VertexBufferID_g, TextureID_g;
-static GLfloat user_offset[3] = { 0.0, 0.0, 0.0 };
-static GLuint ModelMatrix_location,
+static GLfloat user_offset[3] = { 0.0, 0.0, -20.0 };
+static GLuint ViewMatrix_location,
+			  ModelMatrix_location,
               NormalMatrix_location,
               ProjectionMatrix_location,
-              LightSourcePosition_location;
+              LightPosition_location;
 static GLfloat ProjectionMatrix[16];
-static const GLfloat LightSourcePosition[3] = { 0.0, 0.0, 10.0};
+static const GLfloat LightPosition[3] = { 5.0, 5.0, -10.0};
 
 static void cube_draw() {
    GLfloat model_matrix[16], view_matrix[16], normal_matrix[16], projection_matrix[16];
 
-   /* Translate and rotate the view */
    identity(view_matrix);
-   translate(view_matrix, 0, 0, -20);
-   // rotate(view_matrix, 2 * M_PI * -90.0 / 360.0, 0, 1, 0);
    translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
-   // rotate(view_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
-   // rotate(view_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
-   // rotate(view_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
+   glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, view_matrix);
+
 
    identity(model_matrix);
    translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
    rotate(model_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
    rotate(model_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
-   // rotate(model_matrix, 2 * M_PI * user_offset[2] / 360.0, 0, 0, 1);
    translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
-   // multiply(model_matrix, view_matrix);
    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, model_matrix);
 
-   /* Create and set the ProjectionMatrix */
+
    memcpy(projection_matrix, ProjectionMatrix, sizeof(projection_matrix));
-   multiply(projection_matrix, view_matrix);
+   // multiply(projection_matrix, view_matrix);
    glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, projection_matrix);
+
 
    memcpy(normal_matrix, view_matrix, sizeof (normal_matrix));
    invert(normal_matrix);
    transpose(normal_matrix);
    glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
 
+   //////////////////////////////////////////////////////////////////////////////
 
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -245,7 +239,6 @@ static void cube_draw() {
                          /* stride */    sizeof(vertex_t),
                          /* pointer */   (GLvoid*)offsetof(vertex_t,block));
 
-   // glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP, /*first=*/0, /*count=*/(VERTEX_BUFFER_SIZE-1));
    glDrawArrays(/*mode=*/GL_TRIANGLES, /*first=*/0, /*count=*/VERTEX_BUFFER_SIZE);
 
    glDisableVertexAttribArray(POSITION_LOCATION);
@@ -279,6 +272,7 @@ static void cube_init(void) {
    glEnable(GL_CULL_FACE);
    glFrontFace(GL_CW); 
    glClearColor(0.1, 0.1, 0.1, 1.0);
+   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
    GLuint program = glCreateProgram();
    load_shader("app0:vertex.cg", GL_VERTEX_SHADER, &program);
@@ -293,13 +287,14 @@ static void cube_init(void) {
    glUseProgram(program);
 
    /* Get the locations of the uniforms so we can access them */
-   ModelMatrix_location         = glGetUniformLocation(program, "ModelMatrix");
-   ProjectionMatrix_location    = glGetUniformLocation(program, "ProjectionMatrix");
-   NormalMatrix_location        = glGetUniformLocation(program, "NormalMatrix");
-   LightSourcePosition_location = glGetUniformLocation(program, "LightSourcePosition");
-   glUniform3fv(LightSourcePosition_location, 1, LightSourcePosition);
+   ViewMatrix_location       = glGetUniformLocation(program, "ViewMatrix");
+   ModelMatrix_location      = glGetUniformLocation(program, "ModelMatrix");
+   ProjectionMatrix_location = glGetUniformLocation(program, "ProjectionMatrix");
+   NormalMatrix_location     = glGetUniformLocation(program, "NormalMatrix");
+   LightPosition_location    = glGetUniformLocation(program, "LightPosition");
+   glUniform3fv(LightPosition_location, 1, LightPosition);
 
-   parse_playfield_to_strip_vertices();
+   parse_playfield_to_triangles();
 
    glGenBuffers(1, &VertexBufferID_g);
    glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);

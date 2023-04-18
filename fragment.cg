@@ -4,6 +4,7 @@ struct fragment_t {
     float2 texcoord;
     unsigned char block_type;
     float diffusion;
+    float3 kolor;
 };
 
 float4 main(
@@ -22,11 +23,12 @@ float4 main(
     else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
     else                               color = float3(1,0,0); // Z
 
-    // float diffusion = max(fragment.diffusion, 0.1);
-    float diffusion = abs(fragment.diffusion);
+    float diffusion = max(fragment.diffusion, 0.1);
+    // float diffusion = abs(fragment.diffusion);
 
     color *= texel * diffusion;
-    // float3 color = block_color;
-    // float3 color = float3(1,0,1)*texel;
+    // color = (fragment.kolor+1)/2;
+    // color = abs(fragment.kolor);
+    // color = float3(diffusion, diffusion, diffusion);
     return float4(color, 1);
 }
