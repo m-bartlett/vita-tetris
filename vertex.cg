@@ -1,4 +1,5 @@
 uniform float4x4 ModelMatrix;
+uniform float4x4 NormalMatrix;
 uniform float4x4 ViewMatrix;
 uniform float4x4 ProjectionMatrix;
 uniform float3   LightPosition;
@@ -20,16 +21,17 @@ void main(
     unsigned char block_type = type[0];
     unsigned char face_type = type[1];
 
-    float4x4 ModelViewMatrix = mul(ModelMatrix,ViewMatrix);
-    float4 mvPosition = mul(float4(position, 1.0f), ModelViewMatrix);
+    float4 mvPosition = mul(mul(float4(position, 1.0f), ModelMatrix), ViewMatrix);
+
+    // Undo translation for normal rotation calculation
+    ModelMatrix[3][0] = 0; ModelMatrix[3][1] = 0; ModelMatrix[3][2] = 0;
 
     float3 normal = normalize(FaceTypeNormals[face_type]);
-    normal = normalize(mul(float4(normal,1), transpose(ModelViewMatrix)).xyz);
+    normal = normalize(mul(float4(normal,1), ModelMatrix).xyz);
 
-    LightPosition.z = -LightPosition.z;
-    float diffusion = abs(dot(normal, normalize(LightPosition)));
+    float3 light = normalize(LightPosition);
+    float diffusion = dot(normal, light);
 
     fragment = fragment_t(texcoord, block_type, diffusion);
     gl_Position = mul(mvPosition, ProjectionMatrix);
-
 }

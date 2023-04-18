@@ -81,7 +81,7 @@ typedef struct {
     uint8_t block, face;
 } vertex_t;
 
-enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4, FACE_TOTAL };
+enum {FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4, FACE_QUANTITY};
 
 
 #define PLAYFIELD_VERTEX_COUNT_MAX (6*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
@@ -198,7 +198,7 @@ static void cube_draw() {
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(vertex_t),
                          /* pointer */   (GLvoid*)offsetof(vertex_t,x));
-                              // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
+                                    // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
 
    glEnableVertexAttribArray(TEXCOORD_LOCATION);
    glVertexAttribPointer(/* location */  TEXCOORD_LOCATION,
@@ -231,8 +231,8 @@ static inline void read_input() {
    sceCtrlPeekBufferPositive(0, &pad, 1);
    
    GLboolean view_matrix_needs_update = GL_FALSE;
-   if (pad.buttons & SCE_CTRL_CROSS)  { user_offset[2] -= 0.5; view_matrix_needs_update=GL_TRUE;}
-   if (pad.buttons & SCE_CTRL_SQUARE) { user_offset[2] += 0.5; view_matrix_needs_update=GL_TRUE;}
+   if (pad.buttons & SCE_CTRL_CROSS)  { user_offset[2] -= 0.5; view_matrix_needs_update=GL_TRUE; }
+   if (pad.buttons & SCE_CTRL_SQUARE) { user_offset[2] += 0.5; view_matrix_needs_update=GL_TRUE; }
    // SCE_CTRL_CIRCLE
    // SCE_CTRL_TRIANGLE
    if (view_matrix_needs_update) {
@@ -262,21 +262,15 @@ static inline void read_input() {
 
    if (abs(rx) > ANALOGS_DEADZONE) {
       LightPosition[0] += rx*0.01f;
-      // LightPosition[0] = rx/12.80;
       lighting_needs_update = GL_TRUE;
    }
 
    if (abs(ry) > ANALOGS_DEADZONE) {
       LightPosition[1] -= ry*0.01f;
-      // LightPosition[1] = ry/12.80;
       lighting_needs_update = GL_TRUE;
    }
 
-
-   if (lighting_needs_update) {
-      glUniform3fv(LightPosition_location, 1, LightPosition);
-   }
-   
+   if (lighting_needs_update) glUniform3fv(LightPosition_location, 1, LightPosition);
 }
 
 
@@ -294,13 +288,11 @@ static void cube_init(void) {
 
    glBindAttribLocation(program, POSITION_LOCATION, "position");
    glBindAttribLocation(program, TEXCOORD_LOCATION, "texcoord");
-   glBindAttribLocation(program, TYPE_LOCATION, "type");
-   // glBindAttribLocation(program, NORMAL_LOCATION, "normal");
+   glBindAttribLocation(program, TYPE_LOCATION,      "type");
 
    glLinkProgram(program);
    glUseProgram(program);
 
-   /* Get the locations of the uniforms so we can access them */
    ViewMatrix_location              = glGetUniformLocation(program, "ViewMatrix");
    ModelMatrix_location             = glGetUniformLocation(program, "ModelMatrix");
    LightPosition_location           = glGetUniformLocation(program, "LightPosition");
@@ -315,12 +307,12 @@ static void cube_init(void) {
    perspective(ProjectionMatrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
    glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, ProjectionMatrix);
    
-   const float FaceTypeNormals[5][3] = {[FACE_FRONT]  = {0,  0,  1},
-                                        [FACE_TOP]    = {0,  1,  0},
-                                        [FACE_RIGHT]  = {1,  0,  0},
-                                        [FACE_BOTTOM] = {0, -1,  0},
-                                        [FACE_LEFT]   = {-1, 0,  0}};
-   glUniform3fv(FaceTypeNormals_location, 5, (const float*)FaceTypeNormals);
+   const float FaceTypeNormals[FACE_QUANTITY][3] = {[FACE_FRONT]  = {0,  0, 1},
+                                                    [FACE_TOP]    = {0,  1, 0},
+                                                    [FACE_RIGHT]  = {1,  0, 0},
+                                                    [FACE_BOTTOM] = {0, -1, 0},
+                                                    [FACE_LEFT]   = {-1, 0, 0}};
+   glUniform3fv(FaceTypeNormals_location, FACE_QUANTITY, (const float*)FaceTypeNormals);
 
    parse_playfield_to_triangles();
 
