@@ -81,7 +81,7 @@ typedef struct {
     uint8_t block, face;
 } vertex_t;
 
-enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4 };
+enum { FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT = 4, FACE_TOTAL };
 
 
 #define PLAYFIELD_VERTEX_COUNT_MAX (6*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
@@ -173,46 +173,20 @@ void load_shader(const char *shader_path, GLuint shader_type, GLuint *program) {
 }
 
 static GLuint VertexBufferID_g, TextureID_g;
-static GLfloat user_offset[3] = { 0.0, 0.0, -20.0 };
 static GLuint ViewMatrix_location,
-			  ModelMatrix_location,
-              NormalMatrix_location,
+              ModelMatrix_location,
               ProjectionMatrix_location,
               LightPosition_location;
-static GLfloat ProjectionMatrix[16];
-// static GLfloat ModelMatrix[16] = { [0]=1, 0, [5]=1, 0, [10]=1, 0, [15]=1 };
+#define Z_INITIAL_OFFSET -20
+static GLfloat user_offset[3] = { 0.0, 0.0, Z_INITIAL_OFFSET };
+static GLfloat ViewMatrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
+                                  [12]=-PLAYFIELD_WIDTH/2,
+                                  [13]=-PLAYFIELD_HEIGHT/2,
+                                  [14]=Z_INITIAL_OFFSET, };
 static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
-static GLfloat LightPosition[3] = { 1.0, 1.0, -10.0};
+static GLfloat LightPosition[3] = { 0.0, 0.0, 100.0};
 
 static void cube_draw() {
-   GLfloat view_matrix[16], normal_matrix[16], projection_matrix[16];
-
-   identity(view_matrix);
-   translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
-   glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, view_matrix);
-
-   // printf("model:\n");
-   // for (int y = 0; y < 4; ++y) {
-   //    for (int x = 0; x < 4; ++x) {
-   //       printf("%.02f ", model_matrix[y*4+x]);
-   //    }
-   //    printf("\n");
-   // }
-   // printf("\n");
-
-
-   memcpy(projection_matrix, ProjectionMatrix, sizeof(projection_matrix));
-   // multiply(projection_matrix, view_matrix);
-   glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, projection_matrix);
-
-
-   memcpy(normal_matrix, view_matrix, sizeof (normal_matrix));
-   invert(normal_matrix);
-   transpose(normal_matrix);
-   glUniformMatrix4fv(NormalMatrix_location, 1, GL_FALSE, normal_matrix);
-
-   //////////////////////////////////////////////////////////////////////////////
-
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID_g);
@@ -251,19 +225,21 @@ static void cube_draw() {
    vglSwapBuffers(GL_FALSE);
 }
 
-static void cube_reshape(int width, int height) {
-   perspective(ProjectionMatrix, 60.0, width / (float)height, 1.0, 1024.0);
-   glViewport(0, 0, (GLint) width, (GLint) height);
-}
 
 static inline void read_input() {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
    
-   if (pad.buttons & SCE_CTRL_CROSS)  user_offset[2] -= 0.5;
-   if (pad.buttons & SCE_CTRL_SQUARE) user_offset[2] += 0.5;
+   GLboolean view_matrix_needs_update = GL_FALSE;
+   if (pad.buttons & SCE_CTRL_CROSS)  { user_offset[2] -= 0.5; view_matrix_needs_update=GL_TRUE;}
+   if (pad.buttons & SCE_CTRL_SQUARE) { user_offset[2] += 0.5; view_matrix_needs_update=GL_TRUE;}
    // SCE_CTRL_CIRCLE
    // SCE_CTRL_TRIANGLE
+   if (view_matrix_needs_update) {
+      identity(ViewMatrix);
+      translate(ViewMatrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
+      glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
+   }
 
    GLboolean model_matrix_needs_update = GL_FALSE;
    if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] += 5.0; model_matrix_needs_update=GL_TRUE; }
@@ -298,8 +274,6 @@ static inline void read_input() {
 
 
    if (lighting_needs_update) {
-      printf("AR:(%d,%d) LP: %f %f %f\n",
-             rx, ry, LightPosition[0], LightPosition[1], LightPosition[2]);
       glUniform3fv(LightPosition_location, 1, LightPosition);
    }
    
@@ -307,6 +281,7 @@ static inline void read_input() {
 
 
 static void cube_init(void) {
+   glViewport(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
    glFrontFace(GL_CW); 
@@ -326,13 +301,26 @@ static void cube_init(void) {
    glUseProgram(program);
 
    /* Get the locations of the uniforms so we can access them */
-   ViewMatrix_location       = glGetUniformLocation(program, "ViewMatrix");
-   ModelMatrix_location      = glGetUniformLocation(program, "ModelMatrix");
+   ViewMatrix_location              = glGetUniformLocation(program, "ViewMatrix");
+   ModelMatrix_location             = glGetUniformLocation(program, "ModelMatrix");
+   LightPosition_location           = glGetUniformLocation(program, "LightPosition");
+   GLuint ProjectionMatrix_location = glGetUniformLocation(program, "ProjectionMatrix");
+   GLuint FaceTypeNormals_location  = glGetUniformLocation(program, "FaceTypeNormals");
+
+   glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
-   ProjectionMatrix_location = glGetUniformLocation(program, "ProjectionMatrix");
-   NormalMatrix_location     = glGetUniformLocation(program, "NormalMatrix");
-   LightPosition_location    = glGetUniformLocation(program, "LightPosition");
    glUniform3fv(LightPosition_location, 1, LightPosition);
+
+   float ProjectionMatrix[16];
+   perspective(ProjectionMatrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
+   glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, ProjectionMatrix);
+   
+   const float FaceTypeNormals[5][3] = {[FACE_FRONT]  = {0,  0,  1},
+                                        [FACE_TOP]    = {0,  1,  0},
+                                        [FACE_RIGHT]  = {1,  0,  0},
+                                        [FACE_BOTTOM] = {0, -1,  0},
+                                        [FACE_LEFT]   = {-1, 0,  0}};
+   glUniform3fv(FaceTypeNormals_location, 5, (const float*)FaceTypeNormals);
 
    parse_playfield_to_triangles();
 
@@ -382,8 +370,6 @@ int main(int argc, char *argv[]) {
    sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 
    cube_init();
-
-   cube_reshape(DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
    while(1) {
     read_input();

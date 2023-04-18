@@ -1,9 +1,8 @@
 uniform float4x4 ModelMatrix;
 uniform float4x4 ViewMatrix;
 uniform float4x4 ProjectionMatrix;
-uniform float4x4 NormalMatrix;
 uniform float3   LightPosition;
-
+uniform float3   FaceTypeNormals[5];
 
 struct fragment_t {
     float2 texcoord;
@@ -14,54 +13,21 @@ struct fragment_t {
 void main(
     float3 position,
     float2 texcoord,
-    char2 type,
+    unsigned char2 type,
     float4 out gl_Position : POSITION,
     fragment_t out fragment : TEXCOORD0
 ) {
-    char block_type = type.x;
-    char face_type = type.y;
+    unsigned char block_type = type[0];
+    unsigned char face_type = type[1];
 
-    // float4x4 ModelViewMatrix = mul(ModelMatrix,ViewMatrix);
     float4x4 ModelViewMatrix = mul(ModelMatrix,ViewMatrix);
-
-    // float4 mvPosition = mul(float4(position, 1.0f), ModelMatrix);
     float4 mvPosition = mul(float4(position, 1.0f), ModelViewMatrix);
-    // float4 mvPosition = mul(mul(float4(position, 1.0f), ModelMatrix), ViewMatrix);
 
-    float3 normal;
-         if (face_type == 1) normal = float3(0,1,0);  // top
-    else if (face_type == 2) normal = float3(1,0,0);  // right
-    else if (face_type == 3) normal = float3(0,-1,0); // bottom
-    else if (face_type == 4) normal = float3(-1,0,0); // left
-    else                     normal = float3(0,0,-1); // front
-
-    // normal = float3(texcoord.x, texcoord.y, position.z);
-    // normal = (normalize(position)*2)-1;
-    // normal = normalize((mvPosition*2)-1);
-    // normal += position;
-
-    // normal = normalize(normal+position);
+    float3 normal = normalize(FaceTypeNormals[face_type]);
     normal = normalize(mul(float4(normal,1), transpose(ModelViewMatrix)).xyz);
-    // normal = normalize(mul(float4(normal,1), ViewMatrix).xyz);
-    // normal = normalize(mul(float4(normal,1), transpose(ModelMatrix)).xyz);
-    // normal = normalize(mul(float4(normal,1), NormalMatrix).xyz);
-    // normal = normalize(normal);
 
-    float3 N;
-    N = normal;
-    // N = normalize(mul(float4(normal,1), NormalMatrix).xyz);
-
-
-    float3 L;
-    L = LightPosition;
-    L = normalize(L);
-    // L = normalize(L.xyz - mvPosition.xyz);
-    // L = normalize(mul(float4(L,1), ModelMatrix).xyz);
-    // L = normalize(mul(float4(L, 1.0f), ViewMatrix));
-    // L = normalize(mul(float4(L, 1.0f), ModelViewMatrix));
-
-
-    float diffusion = dot(N, L);
+    LightPosition.z = -LightPosition.z;
+    float diffusion = abs(dot(normal, normalize(LightPosition)));
 
     fragment = fragment_t(texcoord, block_type, diffusion);
     gl_Position = mul(mvPosition, ProjectionMatrix);

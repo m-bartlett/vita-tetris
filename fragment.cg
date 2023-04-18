@@ -12,7 +12,6 @@ float4 main(
 
     float texel = tex2D(gTexture, fragment.texcoord);
 
-    // else if (fragment.block_type == 3) block_color = float3(0.75,0,1); // T
     float3 color;
          if (fragment.block_type == 1) color = float3(0,1,0.95); // I
     else if (fragment.block_type == 2) color = float3(1,1,0); // O
@@ -22,12 +21,6 @@ float4 main(
     else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
     else                               color = float3(1,0,0); // Z
 
-    float diffusion = max(fragment.diffusion, 0.1);
-    // float diffusion = abs(fragment.diffusion);
-
-    color *= texel * diffusion;
-    // color = (fragment.kolor+1)/2;
-    // color = abs(normalize(fragment.kolor));
-    // color = float3(diffusion, diffusion, diffusion);
+    color *= texel * max(fragment.diffusion, 0.1);
     return float4(color, 1);
 }
