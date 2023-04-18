@@ -4,7 +4,6 @@ struct fragment_t {
     float2 texcoord;
     unsigned char block_type;
     float diffusion;
-    float3 kolor;
 };
 
 float4 main(
@@ -28,7 +27,7 @@ float4 main(
 
     color *= texel * diffusion;
     // color = (fragment.kolor+1)/2;
-    // color = abs(fragment.kolor);
+    // color = abs(normalize(fragment.kolor));
     // color = float3(diffusion, diffusion, diffusion);
     return float4(color, 1);
 }

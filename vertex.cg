@@ -9,7 +9,6 @@ struct fragment_t {
     float2 texcoord;
     unsigned char block_type;
     float diffusion;
-    float3 kolor;
 };
 
 void main(
@@ -42,9 +41,9 @@ void main(
     // normal += position;
 
     // normal = normalize(normal+position);
-    // normal = normalize(mul(float4(normal,1), ModelViewMatrix).xyz);
+    normal = normalize(mul(float4(normal,1), transpose(ModelViewMatrix)).xyz);
     // normal = normalize(mul(float4(normal,1), ViewMatrix).xyz);
-    normal = normalize(mul(float4(normal,1), transpose(ModelMatrix)).xyz);
+    // normal = normalize(mul(float4(normal,1), transpose(ModelMatrix)).xyz);
     // normal = normalize(mul(float4(normal,1), NormalMatrix).xyz);
     // normal = normalize(normal);
 
@@ -64,7 +63,7 @@ void main(
 
     float diffusion = dot(N, L);
 
-    fragment = fragment_t(texcoord, block_type, diffusion, N);
+    fragment = fragment_t(texcoord, block_type, diffusion);
     gl_Position = mul(mvPosition, ProjectionMatrix);
 
 }

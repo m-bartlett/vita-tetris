@@ -25,15 +25,15 @@
 static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
  {1,0,0,0,0,0,0,0,0,3},
  {2,3,0,0,0,0,0,0,0,0},
- {4,0,6,0,0,0,0,0,0,0},
- {7,1,2,3,0,0,0,0,0,0},
+ {4,0,1,0,0,0,0,0,0,0},
+ {7,1,1,3,0,0,0,0,0,0},
  {4,0,6,0,1,0,0,0,0,0},
  {2,3,0,5,6,7,0,0,0,0},
  {0,1,2,3,0,5,6,0,0,0},
  {0,0,7,1,2,3,4,5,0,0},
  {0,0,0,6,7,1,2,3,4,0},
- {0,0,0,0,5,6,7,1,2,3},
- {0,5,6,7,1,2,0,0,0,0},
+ {0,0,0,0,5,7,6,1,2,3},
+ {0,5,6,7,7,7,0,0,0,0},
  {1,3,0,5,6,7,1,0,0,0},
  {0,1,0,3,0,5,0,7,0,0},
  {0,0,0,2,0,4,0,6,0,3},
@@ -180,22 +180,25 @@ static GLuint ViewMatrix_location,
               ProjectionMatrix_location,
               LightPosition_location;
 static GLfloat ProjectionMatrix[16];
-static const GLfloat LightPosition[3] = { 5.0, 5.0, -10.0};
+// static GLfloat ModelMatrix[16] = { [0]=1, 0, [5]=1, 0, [10]=1, 0, [15]=1 };
+static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+static GLfloat LightPosition[3] = { 1.0, 1.0, -10.0};
 
 static void cube_draw() {
-   GLfloat model_matrix[16], view_matrix[16], normal_matrix[16], projection_matrix[16];
+   GLfloat view_matrix[16], normal_matrix[16], projection_matrix[16];
 
    identity(view_matrix);
    translate(view_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, user_offset[2]);
    glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, view_matrix);
 
-
-   identity(model_matrix);
-   translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
-   rotate(model_matrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
-   rotate(model_matrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
-   translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
-   glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, model_matrix);
+   // printf("model:\n");
+   // for (int y = 0; y < 4; ++y) {
+   //    for (int x = 0; x < 4; ++x) {
+   //       printf("%.02f ", model_matrix[y*4+x]);
+   //    }
+   //    printf("\n");
+   // }
+   // printf("\n");
 
 
    memcpy(projection_matrix, ProjectionMatrix, sizeof(projection_matrix));
@@ -256,14 +259,50 @@ static void cube_reshape(int width, int height) {
 static inline void read_input() {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
-   if (pad.buttons & SCE_CTRL_LEFT)  user_offset[1] += 5.0;
-   if (pad.buttons & SCE_CTRL_RIGHT) user_offset[1] -= 5.0;
-   if (pad.buttons & SCE_CTRL_UP)    user_offset[0] += 5.0;
-   if (pad.buttons & SCE_CTRL_DOWN)  user_offset[0] -= 5.0;
+   
    if (pad.buttons & SCE_CTRL_CROSS)  user_offset[2] -= 0.5;
    if (pad.buttons & SCE_CTRL_SQUARE) user_offset[2] += 0.5;
    // SCE_CTRL_CIRCLE
    // SCE_CTRL_TRIANGLE
+
+   GLboolean model_matrix_needs_update = GL_FALSE;
+   if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] += 5.0; model_matrix_needs_update=GL_TRUE; }
+   if (pad.buttons & SCE_CTRL_RIGHT) { user_offset[1] -= 5.0; model_matrix_needs_update=GL_TRUE; }
+   if (pad.buttons & SCE_CTRL_UP)    { user_offset[0] += 5.0; model_matrix_needs_update=GL_TRUE; }
+   if (pad.buttons & SCE_CTRL_DOWN)  { user_offset[0] -= 5.0; model_matrix_needs_update=GL_TRUE; }
+
+   if (model_matrix_needs_update) {
+      identity(ModelMatrix);
+      translate(ModelMatrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
+      rotate(ModelMatrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
+      rotate(ModelMatrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
+      translate(ModelMatrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+      glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+   }
+
+   #define ANALOGS_DEADZONE 1
+   GLboolean lighting_needs_update = GL_FALSE;
+   int rx = pad.rx - 127, ry = pad.ry - 127;
+
+   if (abs(rx) > ANALOGS_DEADZONE) {
+      LightPosition[0] += rx*0.01f;
+      // LightPosition[0] = rx/12.80;
+      lighting_needs_update = GL_TRUE;
+   }
+
+   if (abs(ry) > ANALOGS_DEADZONE) {
+      LightPosition[1] -= ry*0.01f;
+      // LightPosition[1] = ry/12.80;
+      lighting_needs_update = GL_TRUE;
+   }
+
+
+   if (lighting_needs_update) {
+      printf("AR:(%d,%d) LP: %f %f %f\n",
+             rx, ry, LightPosition[0], LightPosition[1], LightPosition[2]);
+      glUniform3fv(LightPosition_location, 1, LightPosition);
+   }
+   
 }
 
 
@@ -289,6 +328,7 @@ static void cube_init(void) {
    /* Get the locations of the uniforms so we can access them */
    ViewMatrix_location       = glGetUniformLocation(program, "ViewMatrix");
    ModelMatrix_location      = glGetUniformLocation(program, "ModelMatrix");
+   glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
    ProjectionMatrix_location = glGetUniformLocation(program, "ProjectionMatrix");
    NormalMatrix_location     = glGetUniformLocation(program, "NormalMatrix");
    LightPosition_location    = glGetUniformLocation(program, "LightPosition");
@@ -337,6 +377,9 @@ static void cube_init(void) {
 int main(int argc, char *argv[]) {
    /* Initialize the window */
    vglInitExtended(0, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x800000, SCE_GXM_MULTISAMPLE_4X);
+
+   // Enabling sampling for the analogs
+   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 
    cube_init();
 
