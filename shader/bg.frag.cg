@@ -10,7 +10,8 @@ float4 main(
     fragment_t fragment : TEXCOORD0
 ) {
 
-    float texel = tex2D(gTexture, fragment.texcoord);
+    float3 texel = tex2D(gTexture, fragment.texcoord);
+    float intensity = (texel.x+texel.y+texel.z)/3.0;
 
     float3 color;
          if (fragment.block_type == 1) color = float3(0,1,0.95); // I
@@ -21,6 +22,6 @@ float4 main(
     else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
     else                               color = float3(1,0,0); // Z
 
-    color *= texel * max(fragment.diffusion, 0.1);
+    color *= intensity * max(fragment.diffusion, 0.1);
     return float4(color, 1);
 }

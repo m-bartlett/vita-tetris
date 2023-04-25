@@ -45,8 +45,9 @@ all: $(TARGETVPK)
 
 $(TARGETVPK): eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLEID) "$(TARGET)" param.sfo
-	vita-pack-vpk -s param.sfo -b eboot.bin \
-		$(shell for f in *.cg *.pgm; do echo -n "-a $$f=$$f "; done) $@ 
+	vita-pack-vpk -s param.sfo -b eboot.bin -a texture=texture -a shader=shader $@
+
+# 		$(shell for f in *.cg *.bmp; do echo -n "-a $$f=$$f "; done) $@ 
 
 eboot.bin: $(TARGET).velf
 	vita-make-fself $< eboot.bin	
@@ -66,7 +67,7 @@ clean:
 	if [ -d "$(VITA3K_INSTALL_DIR)" ]; then \
 		cp -v eboot.bin "$(VITA3K_INSTALL_DIR)/" ;\
 		cp -v param.sfo "$(VITA3K_INSTALL_DIR)/sce_sys/" ;\
-		cp -v *.cg *.pgm "$(VITA3K_INSTALL_DIR)/" ;\
+		cp -v -r shader texture "$(VITA3K_INSTALL_DIR)/" ;\
 		cd "$(VITA3K_DIR)" ;\
 		./Vita3K -B Vulkan --installed-path $(TITLEID) ;\
 	else \
