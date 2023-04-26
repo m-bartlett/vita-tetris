@@ -1,27 +1,8 @@
-uniform sampler2D gTexture : TEXUNIT0;
-
-struct fragment_t {
-    float2 texcoord;
-    unsigned char block_type;
-    float diffusion;
-};
+uniform sampler2D gTexture2 : TEXUNIT0;
 
 float4 main(
-    fragment_t fragment : TEXCOORD0
+    float2 texcoord : TEXCOORD0
 ) {
-
-    float3 texel = tex2D(gTexture, fragment.texcoord);
-    float intensity = (texel.x+texel.y+texel.z)/3.0;
-
-    float3 color;
-         if (fragment.block_type == 1) color = float3(0,1,0.95); // I
-    else if (fragment.block_type == 2) color = float3(1,1,0); // O
-    else if (fragment.block_type == 3) color = float3(0.8,0,1.0); // T
-    else if (fragment.block_type == 4) color = float3(0,0.4,1); // J
-    else if (fragment.block_type == 5) color = float3(1,0.5,0); // L
-    else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
-    else                               color = float3(1,0,0); // Z
-
-    color *= intensity * max(fragment.diffusion, 0.1);
-    return float4(color, 1);
+    float3 texel = tex2D(gTexture2, texcoord);
+    return float4(texel, 1);
 }

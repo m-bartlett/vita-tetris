@@ -170,9 +170,10 @@ void load_shader(const char *shader_path, GLuint *program) {
    fseek(f, 0, SEEK_END);
    uint32_t shader_size = ftell(f);
    fseek(f, 0, SEEK_SET);
-   char shader_body[shader_size];
+   char shader_body[shader_size+1];
    fread(shader_body, 1, shader_size, f);
    fclose(f);
+   shader_body[shader_size] = 0;
    printf("%s\n\n", shader_body);
 
    GLuint shader_ref = glCreateShader(shader_type);
@@ -277,6 +278,11 @@ void gl_init() {
 }
 
 
+//--------------------------------------- tetromino ----------------------------------------------//
+
+
+#define CUBE_TEXTURE_UNIT GL_TEXTURE0
+
 GLuint cube_program;
 GLuint cube_vertex_buffer_id, cube_texture_id;
 
@@ -348,18 +354,18 @@ static void cube_init(void) {
                 /* data */   texture_pixels);
 
    stbi_image_free(texture_pixels);
-   // free(texture_pixels);
 
    glUniform1i(glGetUniformLocation(cube_program, "gTexture"), 0);
-   glActiveTexture(GL_TEXTURE0);
+   glActiveTexture(CUBE_TEXTURE_UNIT);
+   glBindTexture(GL_TEXTURE_2D, cube_texture_id);
 }
 
 
 static void cube_draw() {
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
    glBindBuffer(GL_ARRAY_BUFFER, cube_vertex_buffer_id);
    glUseProgram(cube_program);
+   // glActiveTexture(CUBE_TEXTURE_UNIT);
+   glBindTexture(GL_TEXTURE_2D, cube_texture_id);
 
    glEnableVertexAttribArray(POSITION_LOCATION);
    glVertexAttribPointer(/* location */  POSITION_LOCATION,
@@ -393,37 +399,46 @@ static void cube_draw() {
    glDisableVertexAttribArray(TYPE_LOCATION);
    glUseProgram(0);
    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-   vglSwapBuffers(GL_FALSE);
 }
 
 
-typedef struct {
-    int16_t x, y, z;
-    uint8_t u, v;
-} background_vertex_t;
 
-#define BACKGROUND_Z -10
+//------------------------------------------------------------------------------------------------//
+
+
+
+typedef struct { int16_t x, y; uint8_t u, v; } background_vertex_t;
+
 const background_vertex_t BACKGROUND_VERTEX_BUFFER[] = {
-   (background_vertex_t){.x=-DISPLAY_WIDTH/2, .y=-DISPLAY_HEIGHT/2, .z=BACKGROUND_Z, .u=0, .v=0},
-   (background_vertex_t){.x=-DISPLAY_WIDTH/2, .y=DISPLAY_HEIGHT/2,  .z=BACKGROUND_Z, .u=0, .v=1},
-   (background_vertex_t){.x=DISPLAY_WIDTH/2,  .y=-DISPLAY_HEIGHT/2, .z=BACKGROUND_Z, .u=1, .v=0},
-   (background_vertex_t){.x=DISPLAY_WIDTH/2,  .y=DISPLAY_HEIGHT/2,  .z=BACKGROUND_Z, .u=1, .v=1},
+   // (background_vertex_t){.x=-DISPLAY_WIDTH/2, .y=-DISPLAY_HEIGHT/2, .u=0, .v=0},
+   // (background_vertex_t){.x=-DISPLAY_WIDTH/2, .y=DISPLAY_HEIGHT/2,  .u=0, .v=1},
+   // (background_vertex_t){.x=DISPLAY_WIDTH/2,  .y=-DISPLAY_HEIGHT/2, .u=1, .v=0},
+   // (background_vertex_t){.x=DISPLAY_WIDTH/2,  .y=DISPLAY_HEIGHT/2,  .u=1, .v=1},
+   (background_vertex_t){.x=-1, .y=-1, .u=0, .v=0},
+   (background_vertex_t){.x=-1, .y=1,  .u=0, .v=1},
+   (background_vertex_t){.x=1,  .y=-1, .u=1, .v=0},
+   (background_vertex_t){.x=1,  .y=1,  .u=1, .v=1},
 };
 
-// TO-DO: Show background at z=0 without depth test enabled
-
+#define BACKGROUND_TEXTURE_UNIT GL_TEXTURE0
 GLuint background_program, background_vertex_buffer_id, background_texture_id;
 void background_init() {
+   background_program = glCreateProgram();
+   load_shader("app0:shader/bg.vert.cg", &background_program);
+   load_shader("app0:shader/bg.frag.cg", &background_program);
+
+   glBindAttribLocation(background_program, POSITION_LOCATION, "position");
+   glBindAttribLocation(background_program, TEXCOORD_LOCATION, "texcoord");
+
    glLinkProgram(background_program);
    glUseProgram(background_program);
 
    glGenBuffers(1, &background_vertex_buffer_id);
    glBindBuffer(GL_ARRAY_BUFFER, background_vertex_buffer_id);
-   glBufferData(/* type */  GL_ARRAY_BUFFER,
-                /* size */  sizeof(BACKGROUND_VERTEX_BUFFER),
-                /* data */  BACKGROUND_VERTEX_BUFFER,
-                /* usage */ GL_STATIC_DRAW);
+   glBufferData(/*type*/ GL_ARRAY_BUFFER,
+                /*size*/ sizeof(BACKGROUND_VERTEX_BUFFER),
+                /*data*/ BACKGROUND_VERTEX_BUFFER,
+                /*usage*/GL_STATIC_DRAW);
 
    unsigned int texture_width, texture_height, texture_channels;
    uint8_t *texture_pixels = stbi_load("app0:texture/bg.bmp",
@@ -450,22 +465,62 @@ void background_init() {
                 /* data */   texture_pixels);
 
    stbi_image_free(texture_pixels);
-   // free(texture_pixels);
 
-   glUniform1i(glGetUniformLocation(cube_program, "gTexture"), 0);
-   glActiveTexture(GL_TEXTURE0);
+   glUniform1i(glGetUniformLocation(background_program, "gTexture2"), 0);
+   glActiveTexture(BACKGROUND_TEXTURE_UNIT);
+   glBindTexture(GL_TEXTURE_2D, background_texture_id);
+}
+
+
+void background_draw() {
+   glBindBuffer(GL_ARRAY_BUFFER, background_vertex_buffer_id);
+   glUseProgram(background_program);
+   glBindTexture(GL_TEXTURE_2D, background_texture_id);
+   // glActiveTexture(BACKGROUND_TEXTURE_UNIT);
+
+   glEnableVertexAttribArray(POSITION_LOCATION);
+   glVertexAttribPointer(/* location */  POSITION_LOCATION,
+                         /* dimension */ 3,
+                         /* type */      GL_SHORT,
+                         /* normalize */ GL_FALSE,
+                         /* stride */    sizeof(background_vertex_t),
+                         /* pointer */   (GLvoid*)offsetof(background_vertex_t,x));
+
+   glEnableVertexAttribArray(TEXCOORD_LOCATION);
+   glVertexAttribPointer(/* location */  TEXCOORD_LOCATION,
+                         /* dimension */ 2,
+                         /* type */      GL_UNSIGNED_BYTE,
+                         /* normalize */ GL_FALSE,
+                         /* stride */    sizeof(background_vertex_t),
+                         /* pointer */   (GLvoid*)offsetof(background_vertex_t,u));
+
+
+   glDisable(GL_DEPTH_TEST);
+   glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP,
+                /*first=*/0,
+                /*count=*/ARRAY_SIZE(BACKGROUND_VERTEX_BUFFER));
+   glEnable(GL_DEPTH_TEST);
+
+
+   glDisableVertexAttribArray(POSITION_LOCATION);
+   glDisableVertexAttribArray(TEXCOORD_LOCATION);
+   glUseProgram(0);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 
 int main(int argc, char *argv[]) {
    gl_init();
 
+   background_init();
    cube_init();
 
    while(1) {
-    read_input();
-    cube_draw();
-    // cube_idle();
+      read_input();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      background_draw();
+      cube_draw();
+      vglSwapBuffers(GL_FALSE);
    }
 
    return 0;

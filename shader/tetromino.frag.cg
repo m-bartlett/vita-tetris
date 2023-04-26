@@ -19,7 +19,8 @@ float4 main(
     else if (fragment.block_type == 3) color = float3(0.8,0,1.0); // T
     else if (fragment.block_type == 4) color = float3(0,0.4,1); // J
     else if (fragment.block_type == 5) color = float3(1,0.5,0); // L
-    else if (fragment.block_type == 6) color = float3(0,0.75,0); // S
+    else if (fragment.block_type == 6) color = float3(0.443, 0.784, 0.059); // S
+    
     else                               color = float3(1,0,0); // Z
 
     color *= intensity * max(fragment.diffusion, 0.1);
