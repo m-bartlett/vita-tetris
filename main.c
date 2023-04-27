@@ -27,52 +27,52 @@
 #define PLAYFIELD_HEIGHT 20
 
 
-static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
- {1,0,0,0,0,0,0,0,0,3},
- {2,3,0,0,0,0,0,0,0,0},
- {4,0,1,0,0,0,0,0,0,0},
- {7,1,1,3,0,0,0,0,0,0}, 
- {4,0,6,0,1,0,0,0,0,0},
- {2,3,0,5,6,7,0,0,0,0},
- {0,1,2,3,0,5,6,0,0,0},
- {0,0,7,1,2,3,4,5,0,0},
- {0,0,0,6,7,1,2,3,4,0},
- {0,0,0,0,5,7,6,1,2,3},
- {0,5,6,7,7,7,0,0,0,0},
- {1,3,0,5,6,7,1,0,0,0},
- {0,1,0,3,0,5,0,7,0,0},
- {0,0,0,2,0,4,0,6,0,3},
- {0,0,0,0,7,1,2,3,4,5},
- {0,0,0,0,0,6,7,1,2,3},
- {0,0,0,0,0,0,4,5,6,7},
- {0,0,0,0,0,0,0,1,2,3},
- {0,0,0,0,0,0,0,0,4,5},
- {0,0,0,0,0,0,0,0,0,6},
-};
-
-
 // static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,0,0,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,2,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
-//     {2,0,2,2,2,2,2,2,2,2},
+//  {1,0,0,0,0,0,0,0,0,3},
+//  {2,3,0,0,0,0,0,0,0,0},
+//  {4,0,1,0,0,0,0,0,0,0},
+//  {7,1,1,3,0,0,0,0,0,0}, 
+//  {4,0,6,0,1,0,0,0,0,0},
+//  {2,3,0,5,6,7,0,0,0,0},
+//  {0,1,2,3,0,5,6,0,0,0},
+//  {0,0,7,1,2,3,4,5,0,0},
+//  {0,0,0,6,7,1,2,3,4,0},
+//  {0,0,0,0,5,7,6,1,2,3},
+//  {0,5,6,7,7,7,0,0,0,0},
+//  {1,3,0,5,6,7,1,0,0,0},
+//  {0,1,0,3,0,5,0,7,0,0},
+//  {0,0,0,2,0,4,0,6,0,3},
+//  {0,0,0,0,7,1,2,3,4,5},
+//  {0,0,0,0,0,6,7,1,2,3},
+//  {0,0,0,0,0,0,4,5,6,7},
+//  {0,0,0,0,0,0,0,1,2,3},
+//  {0,0,0,0,0,0,0,0,4,5},
+//  {0,0,0,0,0,0,0,0,0,6},
 // };
+
+
+static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
+    {0,7,3,0,7,0,0,0,7,6},
+    {0,4,6,0,7,6,1,0,6,5},
+    {0,3,6,5,7,2,0,0,5,4},
+    {0,6,5,4,7,2,0,0,6,2},
+    {0,3,4,3,5,0,0,0,5,7},
+    {0,2,1,7,3,2,2,1,5,7},
+    {0,1,4,6,2,1,7,6,1,7},
+    {0,1,3,5,0,7,2,5,1,7},
+    {5,4,7,6,7,6,2,4,6,5},
+    {5,4,6,5,0,0,4,3,6,3},
+    {6,5,7,2,5,5,3,2,5,4},
+    {2,2,5,2,4,3,6,1,4,3},
+    {2,1,3,2,2,1,3,7,3,2},
+    {1,7,3,2,7,6,2,5,7,6},
+    {2,0,6,1,1,7,6,1,7,6},
+    {5,0,1,3,6,5,7,4,1,7},
+    {5,0,4,7,6,5,4,7,2,4},
+    {3,0,6,4,6,5,4,0,5,1},
+    {4,0,3,5,7,3,2,0,2,5},
+    {4,0,2,1,5,7,2,0,4,6},
+};
 
 
 #define POSITION_LOCATION 0
@@ -186,13 +186,11 @@ void load_shader(const char *shader_path, GLuint *program) {
 }
 
 
-static inline void flip_rgb_image_vertically(uint8_t* buffer,
-                                         unsigned int width,
-                                         unsigned int height) {
+static inline void rgb_image_flip_vertically(uint8_t* buffer, uint16_t width, uint16_t height) {
     /* Flip the image vertically, OpenGL expects (0,0) to be the bottom-left of the image */
-   const unsigned int row_size = width * 3;
-   unsigned int top_row_index = 0;
-   unsigned int bottom_row_index = (height - 1) * row_size;
+   const uint32_t row_size = width * 3;
+   uint32_t top_row_index = 0;
+   uint32_t bottom_row_index = (height - 1) * row_size;
    uint8_t temp_row[row_size];
    for (int y = 0; y < height / 2; y++) {
       memcpy(temp_row, &buffer[top_row_index], row_size);
@@ -200,6 +198,39 @@ static inline void flip_rgb_image_vertically(uint8_t* buffer,
       memcpy(&buffer[bottom_row_index], temp_row, row_size);
       top_row_index += row_size;
       bottom_row_index -= row_size;
+   }
+}
+
+
+static inline void rgb_image_to_grayscale(uint8_t* buffer, uint16_t width, uint16_t height) {
+   const uint32_t row_size = width * 3;
+   const uint32_t pixel_count = row_size * height;
+   uint32_t i = 0;
+   for (uint32_t y = 0; y < pixel_count; y+=row_size) {
+      for (uint32_t x = 0; x < row_size; x+=3) {
+         uint32_t _x = y+x;
+         uint32_t r = buffer[_x], g = buffer[_x+1], b = buffer[_x+2];
+         uint8_t magnitude = sqrt((r*r) + (g*g) + (b*b)) * 255 / sqrt((255*255)*3);
+         // uint8_t magnitude = (r+g+b)/sqrt(13);
+         buffer[i++] = magnitude;
+      }
+   }
+}
+
+
+static const uint8_t quarter_sine_lookup[64] = {
+   /* [round(255*(-math.cos(x)/2+0.5)) for x in np.linspace(0,math.pi/2,64)] */
+   0, 0, 0, 0, 1, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 26, 28,
+   30, 32, 34, 36, 38, 41, 43, 46, 48, 51, 53, 56, 58, 61, 64, 67, 69, 72, 75, 78, 81, 84, 87, 90,
+   93, 96, 99, 102, 105, 108, 112, 115, 118, 121, 124, 127
+};
+static uint8_t byte_sine (uint8_t x) {
+   switch (x>>6) {
+      default:   // for uint8_t, ~x == 255-x
+      case 0: return quarter_sine_lookup[x];
+      case 1: return ~quarter_sine_lookup[(~x)&63];
+      case 2: return ~quarter_sine_lookup[x&63];
+      case 3: return quarter_sine_lookup[(~x)&63];
    }
 }
 
@@ -218,6 +249,7 @@ static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
 static GLfloat LightPosition[3] = { 0.0, 0.0, 100.0};
 
 
+uint32_t ticks=0;
 static inline void read_input() {
    SceCtrlData pad;
    sceCtrlPeekBufferPositive(0, &pad, 1);
@@ -233,20 +265,24 @@ static inline void read_input() {
       glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
    }
 
-   GLboolean model_matrix_needs_update = GL_FALSE;
-   if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] -= 5.0; model_matrix_needs_update=GL_TRUE; }
-   if (pad.buttons & SCE_CTRL_RIGHT) { user_offset[1] += 5.0; model_matrix_needs_update=GL_TRUE; }
-   if (pad.buttons & SCE_CTRL_UP)    { user_offset[0] -= 5.0; model_matrix_needs_update=GL_TRUE; }
-   if (pad.buttons & SCE_CTRL_DOWN)  { user_offset[0] += 5.0; model_matrix_needs_update=GL_TRUE; }
+   // if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] += 5.0; }
+   // if (pad.buttons & SCE_CTRL_RIGHT) { user_offset[1] -= 5.0; }
+   if (pad.buttons & SCE_CTRL_UP)    { user_offset[0] += 5.0; }
+   if (pad.buttons & SCE_CTRL_DOWN)  { user_offset[0] -= 5.0; }
 
-   if (model_matrix_needs_update) {
-      identity(ModelMatrix);
-      translate(ModelMatrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
-      rotate(ModelMatrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
-      rotate(ModelMatrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
-      translate(ModelMatrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
-      glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
-   }
+   // double t = (double)sceKernelGetProcessTimeWide() / 1000000.0;
+   int16_t tick_sine = byte_sine((ticks++>>1) & 0xff) - 127;
+   double angle = (tick_sine * M_PI)/4095.0;
+
+   user_offset[1] = angle;
+
+   identity(ModelMatrix);
+   translate(ModelMatrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
+   rotate(ModelMatrix, 2 * M_PI * user_offset[0] / 360.0, 1, 0, 0);
+   // rotate(ModelMatrix, 2 * M_PI * user_offset[1] / 360.0, 0, 1, 0);
+   rotate(ModelMatrix, user_offset[1], 0, 1, 0);
+   translate(ModelMatrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+   glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
 
    #define ANALOGS_DEADZONE 1
    GLboolean lighting_needs_update = GL_FALSE;
@@ -277,14 +313,64 @@ void gl_init() {
    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
+GLuint texture_id;
+
+void texture_init() {
+   /* Load block image texture and bind to openGL */
+   unsigned int width, height, channels;
+   uint8_t *pixels;
+
+   pixels = stbi_load("app0:texture/block2.bmp", &width, &height, &channels, 0);
+   rgb_image_flip_vertically(pixels, width, height);
+   rgb_image_to_grayscale(pixels, width, height);
+      
+   glGenTextures(1, &texture_id);
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, texture_id);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   glTexImage2D(/* target */ GL_TEXTURE_2D,
+                /* level */  0,
+                /* intfmt */ GL_RED,
+                /* width */  width,
+                /* height */ height,
+                /* border */ 0,
+                /* format */ GL_RED,
+                /* type */   GL_UNSIGNED_BYTE,
+                /* data */   pixels);
+   stbi_image_free(pixels);
+
+
+   pixels = stbi_load("app0:texture/bg.bmp", &width, &height, &channels, 0);
+   rgb_image_flip_vertically(pixels, width, height);
+      
+   glGenTextures(1, &texture_id);
+   glActiveTexture(GL_TEXTURE1);
+   glBindTexture(GL_TEXTURE_2D, texture_id);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   glTexImage2D(/* target */ GL_TEXTURE_2D,
+                /* level */  0,
+                /* intfmt */ GL_RGB,
+                /* width */  width,
+                /* height */ height,
+                /* border */ 0,
+                /* format */ GL_RGB,
+                /* type */   GL_UNSIGNED_BYTE,
+                /* data */   pixels);
+   stbi_image_free(pixels);
+}
+
 
 //--------------------------------------- tetromino ----------------------------------------------//
 
-
-#define CUBE_TEXTURE_UNIT GL_TEXTURE0
-
 GLuint cube_program;
-GLuint cube_vertex_buffer_id, cube_texture_id;
+GLuint cube_vertex_buffer_id;
+GLuint cube_texture_id;
 
 static void cube_init(void) {
    cube_program = glCreateProgram();
@@ -328,44 +414,15 @@ static void cube_init(void) {
                 /* data */  PLAYFIELD_VERTEX_BUFFER,
                 /* usage */ GL_STATIC_DRAW);
 
-   /* Load block image texture and bind to openGL */
-   unsigned int texture_width, texture_height, texture_channels;
-   uint8_t *texture_pixels = stbi_load("app0:texture/block.bmp",
-                                       &texture_width,
-                                       &texture_height,
-                                       &texture_channels,
-                                       0);
-   flip_rgb_image_vertically(texture_pixels, texture_width, texture_height);
-      
-   glGenTextures(1, &cube_texture_id);
-   glBindTexture(GL_TEXTURE_2D, cube_texture_id);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-   glTexImage2D(/* target */ GL_TEXTURE_2D,
-                /* level */  0,
-                /* intfmt */ GL_RGB,
-                /* width */  texture_width,
-                /* height */ texture_height,
-                /* border */ 0,
-                /* format */ GL_RGB,
-                /* type */   GL_UNSIGNED_BYTE,
-                /* data */   texture_pixels);
-
-   stbi_image_free(texture_pixels);
-
    glUniform1i(glGetUniformLocation(cube_program, "gTexture"), 0);
-   glActiveTexture(CUBE_TEXTURE_UNIT);
-   glBindTexture(GL_TEXTURE_2D, cube_texture_id);
 }
 
 
 static void cube_draw() {
    glBindBuffer(GL_ARRAY_BUFFER, cube_vertex_buffer_id);
    glUseProgram(cube_program);
-   // glActiveTexture(CUBE_TEXTURE_UNIT);
-   glBindTexture(GL_TEXTURE_2D, cube_texture_id);
+   // glBindTexture(GL_TEXTURE_2D, texture_id);
+   glActiveTexture(GL_TEXTURE0);
 
    glEnableVertexAttribArray(POSITION_LOCATION);
    glVertexAttribPointer(/* location */  POSITION_LOCATION,
@@ -403,11 +460,14 @@ static void cube_draw() {
 
 
 
-//------------------------------------------------------------------------------------------------//
 
 
 
-typedef struct { int16_t x, y; uint8_t u, v; } background_vertex_t;
+//-----------------------------------------background---------------------------------------------//
+
+
+
+typedef struct { int8_t x, y; uint8_t u, v; } background_vertex_t;
 
 const background_vertex_t BACKGROUND_VERTEX_BUFFER[] = {
    // (background_vertex_t){.x=-DISPLAY_WIDTH/2, .y=-DISPLAY_HEIGHT/2, .u=0, .v=0},
@@ -420,8 +480,9 @@ const background_vertex_t BACKGROUND_VERTEX_BUFFER[] = {
    (background_vertex_t){.x=1,  .y=1,  .u=1, .v=1},
 };
 
-#define BACKGROUND_TEXTURE_UNIT GL_TEXTURE0
-GLuint background_program, background_vertex_buffer_id, background_texture_id;
+GLuint background_program;
+GLuint background_vertex_buffer_id;
+
 void background_init() {
    background_program = glCreateProgram();
    load_shader("app0:shader/bg.vert.cg", &background_program);
@@ -440,48 +501,20 @@ void background_init() {
                 /*data*/ BACKGROUND_VERTEX_BUFFER,
                 /*usage*/GL_STATIC_DRAW);
 
-   unsigned int texture_width, texture_height, texture_channels;
-   uint8_t *texture_pixels = stbi_load("app0:texture/bg.bmp",
-                                       &texture_width,
-                                       &texture_height,
-                                       &texture_channels,
-                                       0);
-   flip_rgb_image_vertically(texture_pixels, texture_width, texture_height);
-      
-   glGenTextures(1, &background_texture_id);
-   glBindTexture(GL_TEXTURE_2D, background_texture_id);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-   glTexImage2D(/* target */ GL_TEXTURE_2D,
-                /* level */  0,
-                /* intfmt */ GL_RGB,
-                /* width */  texture_width,
-                /* height */ texture_height,
-                /* border */ 0,
-                /* format */ GL_RGB,
-                /* type */   GL_UNSIGNED_BYTE,
-                /* data */   texture_pixels);
-
-   stbi_image_free(texture_pixels);
-
-   glUniform1i(glGetUniformLocation(background_program, "gTexture2"), 0);
-   glActiveTexture(BACKGROUND_TEXTURE_UNIT);
-   glBindTexture(GL_TEXTURE_2D, background_texture_id);
+   glUniform1i(glGetUniformLocation(background_program, "gTexture"), 1);
 }
 
 
 void background_draw() {
    glBindBuffer(GL_ARRAY_BUFFER, background_vertex_buffer_id);
    glUseProgram(background_program);
-   glBindTexture(GL_TEXTURE_2D, background_texture_id);
-   // glActiveTexture(BACKGROUND_TEXTURE_UNIT);
+   // glBindTexture(GL_TEXTURE_2D, texture_id);
+   glActiveTexture(GL_TEXTURE1);
 
    glEnableVertexAttribArray(POSITION_LOCATION);
    glVertexAttribPointer(/* location */  POSITION_LOCATION,
-                         /* dimension */ 3,
-                         /* type */      GL_SHORT,
+                         /* dimension */ 2,
+                         /* type */      GL_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(background_vertex_t),
                          /* pointer */   (GLvoid*)offsetof(background_vertex_t,x));
@@ -512,12 +545,13 @@ void background_draw() {
 int main(int argc, char *argv[]) {
    gl_init();
 
+   texture_init();
    background_init();
    cube_init();
 
    while(1) {
       read_input();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       background_draw();
       cube_draw();
       vglSwapBuffers(GL_FALSE);

@@ -1,8 +1,8 @@
-uniform sampler2D gTexture2 : TEXUNIT0;
+uniform sampler2D gTexture : TEXUNIT1;
 
 float4 main(
     float2 texcoord : TEXCOORD0
 ) {
-    float3 texel = tex2D(gTexture2, texcoord);
+    float3 texel = tex2D(gTexture, texcoord);
     return float4(texel, 1);
 }
