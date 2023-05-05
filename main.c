@@ -88,14 +88,13 @@ enum {FACE_FRONT = 0, FACE_TOP = 1, FACE_RIGHT = 2, FACE_BOTTOM = 3, FACE_LEFT =
 #define PLAYFIELD_VERTEX_COUNT_MAX (6*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
 static tetromino_vertex_t PLAYFIELD_VERTEX_BUFFER[PLAYFIELD_VERTEX_COUNT_MAX];
 static uint32_t PLAYFIELD_VERTEX_BUFFER_SIZE=0;
+
+      
 #define ADD_VERTEX(...) \
    PLAYFIELD_VERTEX_BUFFER[PLAYFIELD_VERTEX_BUFFER_SIZE++]=(tetromino_vertex_t){__VA_ARGS__}
-
-
 void parse_playfield_to_triangles() {
-    GLboolean current_is_populated, previous_was_populated;
     uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
-
+    
     while (y < PLAYFIELD_HEIGHT) {
         y1 = y+1;
         x = 0;
@@ -184,17 +183,17 @@ void load_shader(const char *shader_path, GLuint *program) {
 
 static const uint8_t quarter_sine_lookup[64] = {
    /* [round(255*(-math.cos(x)/2+0.5)) for x in np.linspace(0,math.pi/2,64)] */
-   0, 0, 0, 0, 1, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 26, 28,
-   30, 32, 34, 36, 38, 41, 43, 46, 48, 51, 53, 56, 58, 61, 64, 67, 69, 72, 75, 78, 81, 84, 87, 90,
-   93, 96, 99, 102, 105, 108, 112, 115, 118, 121, 124, 127
+   0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17, 18, 20, 22, 24, 25, 27,
+   29, 31, 34, 36, 38, 40, 42, 45, 47, 50, 52, 55, 57, 60, 63, 66, 68, 71, 74, 77, 80, 83, 86, 89,
+   92, 95, 98, 101, 104, 107, 110, 113, 116, 120, 123, 126
 };
 static uint8_t byte_sine (uint8_t x) {
    switch (x>>6) {
       default:   // for uint8_t, ~x == 255-x
       case 0: return quarter_sine_lookup[x];
-      case 1: return ~quarter_sine_lookup[(~x)&63];
+      case 1: return ~quarter_sine_lookup[~x&63];
       case 2: return ~quarter_sine_lookup[x&63];
-      case 3: return quarter_sine_lookup[(~x)&63];
+      case 3: return quarter_sine_lookup[~x&63];
    }
 }
 
