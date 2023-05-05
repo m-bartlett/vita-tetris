@@ -32,6 +32,8 @@ void main(
     float3 light = normalize(LightPosition);
     float diffusion = dot(normal, light);
 
+    texcoord /= 3.0;  // normalize block coordinates
+
     fragment = fragment_t(texcoord, block_type, diffusion);
     gl_Position = mul(mvPosition, ProjectionMatrix);
 }
