@@ -228,16 +228,15 @@ static inline void read_input() {
       glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
    }
 
-   // if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] += 5.0; }
-   // if (pad.buttons & SCE_CTRL_RIGHT) { user_offset[1] -= 5.0; }
+   if (pad.buttons & SCE_CTRL_LEFT)  { user_offset[1] += 0.1; }
+   if (pad.buttons & SCE_CTRL_RIGHT) { user_offset[1] -= 0.1; }
    if (pad.buttons & SCE_CTRL_UP)    { user_offset[0] += 5.0; }
    if (pad.buttons & SCE_CTRL_DOWN)  { user_offset[0] -= 5.0; }
 
    // double t = (double)sceKernelGetProcessTimeWide() / 1000000.0;
-   int16_t tick_sine = byte_sine((ticks++>>1) & 0xff) - 127;
-   double angle = (tick_sine * M_PI)/4095.0;
-
-   user_offset[1] = angle;
+   // int16_t tick_sine = byte_sine((ticks++>>1) & 0xff) - 128;
+   // double angle = (tick_sine * M_PI)/4095.0;
+   // user_offset[1] += angle;
 
    identity(ModelMatrix);
    translate(ModelMatrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
