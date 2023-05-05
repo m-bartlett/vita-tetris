@@ -11,11 +11,7 @@
 #include <vitasdk.h>
 #include <vitaGL.h>
 #include "linalg.h"
-// #include "pgm.h"
-#define STBI_ONLY_BMP
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-// #include "lodepng.h"
+#include "image.h"
 
 
 #define DISPLAY_WIDTH 960
@@ -186,38 +182,6 @@ void load_shader(const char *shader_path, GLuint *program) {
 }
 
 
-static inline void rgb_image_flip_vertically(uint8_t* buffer, uint16_t width, uint16_t height) {
-    /* Flip the image vertically, OpenGL expects (0,0) to be the bottom-left of the image */
-   const uint32_t row_size = width * 3;
-   uint32_t top_row_index = 0;
-   uint32_t bottom_row_index = (height - 1) * row_size;
-   uint8_t temp_row[row_size];
-   for (int y = 0; y < height / 2; y++) {
-      memcpy(temp_row, &buffer[top_row_index], row_size);
-      memcpy(&buffer[top_row_index], &buffer[bottom_row_index], row_size);
-      memcpy(&buffer[bottom_row_index], temp_row, row_size);
-      top_row_index += row_size;
-      bottom_row_index -= row_size;
-   }
-}
-
-
-static inline void rgb_image_to_grayscale(uint8_t* buffer, uint16_t width, uint16_t height) {
-   const uint32_t row_size = width * 3;
-   const uint32_t pixel_count = row_size * height;
-   uint32_t i = 0;
-   for (uint32_t y = 0; y < pixel_count; y+=row_size) {
-      for (uint32_t x = 0; x < row_size; x+=3) {
-         uint32_t _x = y+x;
-         uint32_t r = buffer[_x], g = buffer[_x+1], b = buffer[_x+2];
-         uint8_t magnitude = sqrt((r*r) + (g*g) + (b*b)) * 255 / sqrt((255*255)*3);
-         // uint8_t magnitude = (r+g+b)/sqrt(13);
-         buffer[i++] = magnitude;
-      }
-   }
-}
-
-
 static const uint8_t quarter_sine_lookup[64] = {
    /* [round(255*(-math.cos(x)/2+0.5)) for x in np.linspace(0,math.pi/2,64)] */
    0, 0, 0, 0, 1, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 26, 28,
@@ -320,15 +284,14 @@ void texture_init() {
    unsigned int width, height, channels;
    uint8_t *pixels;
 
-   pixels = stbi_load("app0:texture/block2.bmp", &width, &height, &channels, 0);
-   rgb_image_flip_vertically(pixels, width, height);
+   pixels = read_bmp_image("app0:texture/block.bmp", &width, &height);
    rgb_image_to_grayscale(pixels, width, height);
       
    glGenTextures(1, &texture_id);
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, texture_id);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
    glTexImage2D(/* target */ GL_TEXTURE_2D,
@@ -340,11 +303,10 @@ void texture_init() {
                 /* format */ GL_RED,
                 /* type */   GL_UNSIGNED_BYTE,
                 /* data */   pixels);
-   stbi_image_free(pixels);
+   free(pixels);
 
 
-   pixels = stbi_load("app0:texture/bg.bmp", &width, &height, &channels, 0);
-   rgb_image_flip_vertically(pixels, width, height);
+   pixels = read_bmp_image("app0:texture/bg.bmp", &width, &height);
       
    glGenTextures(1, &texture_id);
    glActiveTexture(GL_TEXTURE1);
@@ -362,7 +324,7 @@ void texture_init() {
                 /* format */ GL_RGB,
                 /* type */   GL_UNSIGNED_BYTE,
                 /* data */   pixels);
-   stbi_image_free(pixels);
+   free(pixels);
 }
 
 
