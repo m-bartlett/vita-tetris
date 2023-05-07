@@ -10,22 +10,11 @@
  **                                                                        **
  ****************************************************************************/
 
-void rgb_image_to_grayscale(unsigned char* buffer, unsigned int width, unsigned int height) {
-   const unsigned int row_size = width * 3;
-   const unsigned int pixel_count = row_size * height;
-   unsigned int i = 0;
-   for (unsigned int y = 0; y < pixel_count; y+=row_size) {
-      for (unsigned int x = 0; x < row_size; x+=3) {
-         unsigned int _x = y+x;
-         unsigned int r = buffer[_x], g = buffer[_x+1], b = buffer[_x+2];
-         unsigned char magnitude = sqrt((r*r) + (g*g) + (b*b)) * 255 / sqrt((255*255)*3);
-         // unsigned char magnitude = (r+g+b)/sqrt(13);
-         buffer[i++] = magnitude;
-      }
-   }
-}
 
-unsigned char* read_bmp_image(const char* filename, unsigned int* width, unsigned int* height) {
+unsigned char* read_rgb_bmp_image(const char* filename,
+                                  unsigned int* width,
+                                  unsigned int* height)
+{
     FILE* f = fopen(filename, "rb");
     unsigned char info[54];
 
@@ -53,5 +42,25 @@ unsigned char* read_bmp_image(const char* filename, unsigned int* width, unsigne
         buffer[i+2] = tmp;
     }
 
+    return buffer;
+}
+
+
+unsigned char* read_rgb_bmp_image_as_grayscale(const char* filename,
+                                               unsigned int* width,
+                                               unsigned int* height)
+{
+    unsigned char* buffer = read_rgb_bmp_image(filename, width, height);
+    const unsigned int row_size = (*width) * 3;
+    const unsigned int pixel_count = row_size * (*height);
+    unsigned int i = 0;
+    for (unsigned int y = 0; y < pixel_count; y+=row_size) {
+       for (unsigned int x = 0; x < row_size; x+=3) {
+          unsigned int _x = y+x;
+          unsigned int r = buffer[_x], g = buffer[_x+1], b = buffer[_x+2];
+          unsigned char magnitude = sqrt((r*r) + (g*g) + (b*b)) * 255 / sqrt(255*255*3);
+          buffer[i++] = magnitude;
+       }
+    }
     return buffer;
 }

@@ -4,5 +4,10 @@
  **                                                                        **
  ****************************************************************************/
 
-void rgb_image_to_grayscale(unsigned char* buffer, unsigned int width, unsigned int height);
-unsigned char* read_bmp_image(const char* filename, unsigned int* width, unsigned int* height);
+unsigned char* read_rgb_bmp_image(const char* filename,
+                                  unsigned int* width,
+                                  unsigned int* height);
+
+unsigned char* read_rgb_bmp_image_as_grayscale(const char* filename,
+                                               unsigned int* width,
+                                               unsigned int* height);

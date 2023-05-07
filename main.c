@@ -277,8 +277,7 @@ void texture_init() {
    unsigned int width, height, channels;
    uint8_t *pixels;
 
-   pixels = read_bmp_image("app0:texture/block.bmp", &width, &height);
-   rgb_image_to_grayscale(pixels, width, height);
+   pixels = read_rgb_bmp_image_as_grayscale("app0:texture/block.bmp", &width, &height);
       
    glGenTextures(1, &texture_id);
    glActiveTexture(GL_TEXTURE0);
@@ -299,7 +298,7 @@ void texture_init() {
    free(pixels);
 
 
-   pixels = read_bmp_image("app0:texture/bg.bmp", &width, &height);
+   pixels = read_rgb_bmp_image("app0:texture/bg.bmp", &width, &height);
       
    glGenTextures(1, &texture_id);
    glActiveTexture(GL_TEXTURE1);
