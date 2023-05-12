@@ -48,26 +48,26 @@
 
 
 static const uint8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH] = {
-    {0,7,3,0,7,0,0,0,7,6},
-    {0,4,6,0,7,6,1,0,6,5},
-    {0,3,6,5,7,2,0,0,5,4},
-    {0,6,5,4,7,2,0,0,6,2},
-    {0,3,4,3,5,0,0,0,5,7},
-    {0,2,1,7,3,2,2,1,5,7},
-    {0,1,4,6,2,1,7,6,1,7},
-    {0,1,3,5,0,7,2,5,1,7},
-    {5,4,7,6,7,6,2,4,6,5},
-    {5,4,6,5,0,0,4,3,6,3},
-    {6,5,7,2,5,5,3,2,5,4},
-    {2,2,5,2,4,3,6,1,4,3},
-    {2,1,3,2,2,1,3,7,3,2},
-    {1,7,3,2,7,6,2,5,7,6},
-    {2,0,6,1,1,7,6,1,7,6},
-    {5,0,1,3,6,5,7,4,1,7},
-    {5,0,4,7,6,5,4,7,2,4},
-    {3,0,6,4,6,5,4,0,5,1},
-    {4,0,3,5,7,3,2,0,2,5},
-    {4,0,2,1,5,7,2,0,4,6},
+   {0,7,3,0,7,0,0,0,7,6},
+   {0,4,6,0,7,6,1,0,6,5},
+   {0,3,6,5,7,2,0,0,5,4},
+   {0,6,5,4,7,2,0,0,6,2},
+   {0,3,4,3,5,0,0,0,5,7},
+   {0,2,1,7,3,2,2,1,5,7},
+   {0,1,4,6,2,1,7,6,1,7},
+   {0,1,3,5,0,7,2,5,1,7},
+   {5,4,7,6,7,6,2,4,6,5},
+   {5,4,6,5,0,0,4,3,6,3},
+   {6,5,7,2,5,5,3,2,5,4},
+   {2,2,5,2,4,3,6,1,4,3},
+   {2,1,3,2,2,1,3,7,3,2},
+   {1,7,3,2,7,6,2,5,7,6},
+   {2,0,6,1,1,7,6,1,7,6},
+   {5,0,1,3,6,5,7,4,1,7},
+   {5,0,4,7,6,5,4,7,2,4},
+   {3,0,6,4,6,5,4,0,5,1},
+   {4,0,3,5,7,3,2,0,2,5},
+   {4,0,2,1,5,7,2,0,4,6},
 };
 
 
@@ -322,27 +322,27 @@ void texture_init() {
 
 //--------------------------------------- tetromino ----------------------------------------------//
 
-GLuint cube_program;
-GLuint cube_vertex_buffer_id;
-GLuint cube_texture_id;
+GLuint tetromino_program;
+GLuint tetromino_vertex_buffer_id;
+GLuint tetromino_texture_id;
 
-static void cube_init(void) {
-   cube_program = glCreateProgram();
-   load_shader("app0:shader/tetromino.vert.cg", &cube_program);
-   load_shader("app0:shader/tetromino.frag.cg", &cube_program);
+static void tetromino_init(void) {
+   tetromino_program = glCreateProgram();
+   load_shader("app0:shader/tetromino.vert.cg", &tetromino_program);
+   load_shader("app0:shader/tetromino.frag.cg", &tetromino_program);
 
-   glBindAttribLocation(cube_program, POSITION_LOCATION, "position");
-   glBindAttribLocation(cube_program, TEXCOORD_LOCATION, "texcoord");
-   glBindAttribLocation(cube_program, TYPE_LOCATION,      "type");
+   glBindAttribLocation(tetromino_program, POSITION_LOCATION, "position");
+   glBindAttribLocation(tetromino_program, TEXCOORD_LOCATION, "texcoord");
+   glBindAttribLocation(tetromino_program, TYPE_LOCATION,      "type");
 
-   glLinkProgram(cube_program);
-   glUseProgram(cube_program);
+   glLinkProgram(tetromino_program);
+   glUseProgram(tetromino_program);
 
-   ViewMatrix_location              = glGetUniformLocation(cube_program, "ViewMatrix");
-   ModelMatrix_location             = glGetUniformLocation(cube_program, "ModelMatrix");
-   LightPosition_location           = glGetUniformLocation(cube_program, "LightPosition");
-   GLuint ProjectionMatrix_location = glGetUniformLocation(cube_program, "ProjectionMatrix");
-   GLuint FaceTypeNormals_location  = glGetUniformLocation(cube_program, "FaceTypeNormals");
+   ViewMatrix_location              = glGetUniformLocation(tetromino_program, "ViewMatrix");
+   ModelMatrix_location             = glGetUniformLocation(tetromino_program, "ModelMatrix");
+   LightPosition_location           = glGetUniformLocation(tetromino_program, "LightPosition");
+   GLuint ProjectionMatrix_location = glGetUniformLocation(tetromino_program, "ProjectionMatrix");
+   GLuint FaceTypeNormals_location  = glGetUniformLocation(tetromino_program, "FaceTypeNormals");
 
    glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
@@ -361,20 +361,20 @@ static void cube_init(void) {
 
    parse_playfield_to_triangles();
 
-   glGenBuffers(1, &cube_vertex_buffer_id);
-   glBindBuffer(GL_ARRAY_BUFFER, cube_vertex_buffer_id);
+   glGenBuffers(1, &tetromino_vertex_buffer_id);
+   glBindBuffer(GL_ARRAY_BUFFER, tetromino_vertex_buffer_id);
    glBufferData(/* type */  GL_ARRAY_BUFFER,
                 /* size */  PLAYFIELD_VERTEX_BUFFER_SIZE * sizeof(tetromino_vertex_t),
                 /* data */  PLAYFIELD_VERTEX_BUFFER,
                 /* usage */ GL_STATIC_DRAW);
 
-   glUniform1i(glGetUniformLocation(cube_program, "gTexture"), 0);
+   glUniform1i(glGetUniformLocation(tetromino_program, "gTexture"), 0);
 }
 
 
-static void cube_draw() {
-   glBindBuffer(GL_ARRAY_BUFFER, cube_vertex_buffer_id);
-   glUseProgram(cube_program);
+static void tetromino_draw() {
+   glBindBuffer(GL_ARRAY_BUFFER, tetromino_vertex_buffer_id);
+   glUseProgram(tetromino_program);
    // glBindTexture(GL_TEXTURE_2D, texture_id);
    glActiveTexture(GL_TEXTURE0);
 
@@ -501,13 +501,13 @@ int main(int argc, char *argv[]) {
 
    texture_init();
    background_init();
-   cube_init();
+   tetromino_init();
 
    while(1) {
       read_input();
       // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       background_draw();
-      cube_draw();
+      tetromino_draw();
       vglSwapBuffers(GL_FALSE);
    }
 
