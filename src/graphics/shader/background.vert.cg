@@ -1,0 +1,11 @@
+// TO-DO: Test if inout will work for TEXCOORD0
+
+void main(
+    float2 position,
+    float2 texcoord,
+    float2 out f_texcoord : TEXCOORD0,
+    float4 out gl_Position : POSITION
+) {
+    f_texcoord = texcoord;
+    gl_Position = float4(position, 0, 1.0);
+}
