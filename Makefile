@@ -1,34 +1,32 @@
 
 TITLEID    := VGLGLCUBE
-TARGET	   := glescube
+TARGET	   := vitetris
 TARGETVPK  := $(TARGET).vpk
 VITA3K_DIR := "$(HOME)/Projects/vita/3K"
 VITA3K_SDK_DIR := "$(VITA3K_DIR)/sdk"
 VITA3K_INSTALL_DIR := "$(VITA3K_DIR)/config/ux0/app/$(TITLEID)"
 
-SOURCES := .
+SOURCE_DIR := src
 			
 INCLUDES := include
 
 LIBS := -lvitaGL \
-		-lc \
-		-lSceCommonDialog_stub \
-		-lm \
-		-lSceGxm_stub \
-		-lSceDisplay_stub \
-		-lSceAppMgr_stub \
-		-lmathneon \
 		-lvitashark \
-		-lSceCtrl_stub \
-		-lSceShaccCgExt \
+		-lc \
+		-lm \
+		-lmathneon \
 		-ltaihen_stub \
+		-lSceAppMgr_stub \
+		-lSceCommonDialog_stub \
+		-lSceCtrl_stub \
+		-lSceDisplay_stub \
+		-lSceGxm_stub \
+		-lSceKernelDmacMgr_stub \
 		-lSceShaccCg_stub \
-		-lSceKernelDmacMgr_stub
+		-lSceShaccCgExt
 
-CFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
-CPPFILES := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp))
-BINFILES := $(foreach dir,$(DATA), $(wildcard $(dir)/*.bin))
-OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) 
+SOURCE_FILES := $(shell find $(SOURCE_DIR) -type f -name '*.c')
+OBJECTS     := $(SOURCE_FILES:.c=.o)
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
@@ -43,9 +41,20 @@ SHELL := /bin/bash
 
 all: $(TARGETVPK)
 
+
+echo:
+	@echo SOURCE_FILES: $(SOURCE_FILES)
+	@echo OBJECTS: $(OBJECTS)
+
+
 $(TARGETVPK): eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLEID) "$(TARGET)" param.sfo
-	vita-pack-vpk -s param.sfo -b eboot.bin -a texture=texture -a shader=shader $@
+	vita-pack-vpk \
+		-s param.sfo \
+		-b eboot.bin \
+		-a "$(SOURCE_DIR)/graphics/texture=texture" \
+		-a "$(SOURCE_DIR)/graphics/shader=shader" \
+		$@
 
 # 		$(shell for f in *.cg *.bmp; do echo -n "-a $$f=$$f "; done) $@ 
 
@@ -55,11 +64,11 @@ eboot.bin: $(TARGET).velf
 %.velf: %.elf
 	vita-elf-create $< $@
 	
-$(TARGET).elf: $(OBJS)
+$(TARGET).elf: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 	
 clean:
-	@rm -rf *.velf *.elf *.vpk $(OBJS) param.sfo eboot.bin
+	@rm -rfv *.velf *.elf *.vpk $(OBJECTS) param.sfo eboot.bin
 
 3k: $(TARGETVPK) param.sfo eboot.bin
 	builtin source "$(VITA3K_SDK_DIR)/vita-env"
