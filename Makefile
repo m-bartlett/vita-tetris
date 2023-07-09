@@ -1,5 +1,5 @@
 
-TITLEID    := VGLGLCUBE
+TITLEID    := VGLTETRIS
 TARGET	   := vitetris
 TARGETVPK  := $(TARGET).vpk
 VITA3K_DIR := "$(HOME)/Projects/vita/3K"
