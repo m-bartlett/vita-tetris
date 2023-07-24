@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
+__executed=$(($(return 2>/dev/null)$?))
+__prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[7m\]    \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+__prefix_formatted="${__prefix@P}"
+__log() { echo -e "$__prefix_formatted $@"; }
+
+VITASDK_PLATFORM_SUFFIX='.env'
+VITA3K_ZIP_URL='https://github.com/Vita3K/Vita3K/releases/download/continuous/ubuntu-latest.zip'
+
+case "${1,,}" in
+    native|vita) export VITASDK_PLATFORM='native';;
+    *3k|emulat*) export VITASDK_PLATFORM='Vita3K';;
+    clean) 
+        __log "Removing SDK environments..."
+        envs=( $(find "$__dir" -type d -name "*$VITASDK_PLATFORM_SUFFIX") )
+        envcount=${#envs[@]}
+        for env in ${envs[@]}; do
+            filecount=$(rm -rfv "$env" | grep -v directory | wc -l)
+        done
+        __log "Removed $envcount SDK environment$( ((envcount>1))&&echo 's') ($filecount files)."
+        ((__executed)) && exit 1 || return 1
+        ;;
+    *)
+        __log 'Target platform needed, provide either "native" or "3k" as an argument.'>&2
+        __log 'Alternatively specify "clean" to remove all existing vita SDK environments.'>&2
+       ((__executed)) && exit 1 || return 1
+       ;;
+esac
+
+if ((__executed)); then
+  __log 'Spawning environment in child shell.'
+  source_file_regex='^\++ +(builtin )?((source)|(\.)) '
+  export __bash_startup_files="$($BASH -lixc exit 2>&1 |
+                                 grep -E "$source_file_regex" |
+                                 sed -E "s/${source_file_regex}//g")"
+  __bash_source_startups() { for f in $__bash_startup_files
+                             do [ -f $f ] && builtin source $f 2>/dev/null
+                             done }
+  export -f __bash_source_startups
+  exec bash --init-file <(echo "__bash_source_startups ; source $__file $@")
+  exit 0
+fi
+
+if [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]]; then
+    __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\] 3K \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+else
+    __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\]vita\[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+fi
+__prefix_formatted="${__prefix@P}"
+
+export PS1="$__prefix "
+export VITASDK=${VITASDK:-"$__dir/${VITASDK_PLATFORM}${VITASDK_PLATFORM_SUFFIX}"}
+export VITASDKBIN="$VITASDK/bin"
+[[ "$PATH" =~ $VITASDKBIN ]] || export PATH="$VITASDKBIN:$PATH"
+
+
+vita-serve() {
+  local ip=$(ip -o addr show up primary scope global |
+             head -1 |
+             cut -d' ' -f 7-7 |
+             grep -oP '\d+\.\d+\.\d+\.\d+')
+  local url="http://$ip:8000${1:+/$1}"
+  echo $url
+  python3 -m http.server &>/dev/null &
+  httppid=$!
+  qrterminal $url | less -R
+  kill $httppid
+  wait
+}
+
+
+vita-ftp() {
+  # local host="${2:?hostname or IP required}" dest="${3:-download/}"
+  # curl -T "$1" "ftp://${host}:1337/ux0:${dest}"
+  curl -T "$1" "ftp://192.168.0.13:1337/ux0:download/"
+}
+
+if ! [ -d "$VITASDK" ]; then
+    (
+        set -o errexit -o nounset
+
+        ### vita SDK via vdpm
+        __log "Bootstraping vita SDK in $VITASDK..."
+        sleep 1
+        sdktmp="$(mktemp -d)"
+        trap "rm -rf $sdktmp" EXIT
+        git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$sdktmp"
+        pushd "$sdktmp" > /dev/null
+        ./bootstrap-vitasdk.sh
+        ./install-all.sh
+        rm /tmp/vdpm_install_* ||:    # ignore vdpm update cache
+        trap '' EXIT
+        __log 'vita SDK initialized, cleaning up'
+        popd > /dev/null
+        command rm -rf "$sdktmp"
+
+        ### vitaShaRK
+        __log 'Building vitaShaRK...'
+        cd "$VITASDK"
+        git clone --quiet https://github.com/Rinnegatamante/vitaShaRK
+        pushd vitaShaRK > /dev/null
+        if [[ "$VITASDK_PLATFORM" == 'Vita3K' ]]; then
+            target_macro='#define DISABLE_SHACCCG_EXTENSIONS'
+            __log 'Disabling shacccg extensions for Vita3K build target...'
+            sed -i'' "s@^//${target_macro}@${target_macro}@" -- source/vitashark.c
+            __log "The following line should be uncommented:"
+            grep --color=never "$target_macro" source/vitashark.c
+        fi
+        make && make install
+        popd > /dev/null
+        __log 'vitaShaRK installed, cleaning up'
+        command rm -rf vitaShaRK
+
+
+        ### vitaGL
+        __log 'Building vitaGL...'
+        cd "$VITASDK"
+        git clone --quiet https://github.com/Rinnegatamante/vitaGL
+        pushd vitaGL > /dev/null
+        make clean
+        if [[ "$VITASDK_PLATFORM" == 'Vita3K' ]]; then
+            export HAVE_VITA3K_SUPPORT=1
+            __log 'Compiling vitaGL with Vita3K support...'
+        fi
+        # export HAVE_GLSL_SUPPORT=1
+        make && make install
+        popd > /dev/null
+        __log 'vitaGL installed, cleaning up'
+        command rm -rf vitaGL
+
+
+        ### Install Vita3K if that's the target platform
+        if [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]]; then
+            
+        fi
+
+
+        ### Environment ready
+        __log "\e[92mvita SDK environment for $VITASDK_PLATFORM builds created in $VITASDK.\e[0m"
+    )
+fi
