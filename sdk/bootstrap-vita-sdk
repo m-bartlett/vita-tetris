@@ -13,13 +13,13 @@ case "${1,,}" in
     native|vita) export VITASDK_PLATFORM='native';;
     *3k|emulat*) export VITASDK_PLATFORM='Vita3K';;
     clean) 
-        __log "Removing SDK environments..."
         envs=( $(find "$__dir" -type d -name "*$VITASDK_PLATFORM_SUFFIX") )
         envcount=${#envs[@]}
         for env in ${envs[@]}; do
             filecount=$(rm -rfv "$env" | grep -v directory | wc -l)
         done
-        __log "Removed $envcount SDK environment$( ((envcount>1))&&echo 's') ($filecount files)."
+        __log "Removed $envcount SDK environment$( ((envcount==1))||echo 's')" \
+              "(${filecount:-0} files)."
         ((__executed)) && exit 1 || return 1
         ;;
     *)
@@ -43,7 +43,9 @@ if ((__executed)); then
   exit 0
 fi
 
-if [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]]; then
+[[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]] && declare PLATFORM_IS_3K=1
+
+if [ -v PLATFORM_IS_3K ]; then
     __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\] 3K \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
 else
     __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\]vita\[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
@@ -82,31 +84,30 @@ if ! [ -d "$VITASDK" ]; then
         set -o errexit -o nounset
 
         ### vita SDK via vdpm
-        __log "Bootstraping vita SDK in $VITASDK..."
+        __log "\e[34mBootstrapping vita SDK in $VITASDK\e[0m"
         sleep 1
-        sdktmp="$(mktemp -d)"
-        trap "rm -rf $sdktmp" EXIT
-        git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$sdktmp"
-        pushd "$sdktmp" > /dev/null
+        SDKTMP="$(mktemp -d)"
+        trap "rm -rf $SDKTMP" EXIT
+        git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$SDKTMP"
+        pushd "$SDKTMP" > /dev/null
         ./bootstrap-vitasdk.sh
-        ./install-all.sh
+        ./install-all.sh 2>/dev/null
         rm /tmp/vdpm_install_* ||:    # ignore vdpm update cache
         trap '' EXIT
         __log 'vita SDK initialized, cleaning up'
         popd > /dev/null
-        command rm -rf "$sdktmp"
+        command rm -rf "$SDKTMP"
+
 
         ### vitaShaRK
-        __log 'Building vitaShaRK...'
+        __log '\e[34mBuilding vitaShaRK\e[0m'
         cd "$VITASDK"
         git clone --quiet https://github.com/Rinnegatamante/vitaShaRK
         pushd vitaShaRK > /dev/null
-        if [[ "$VITASDK_PLATFORM" == 'Vita3K' ]]; then
+        if [ -v PLATFORM_IS_3K ]; then
             target_macro='#define DISABLE_SHACCCG_EXTENSIONS'
-            __log 'Disabling shacccg extensions for Vita3K build target...'
+            __log 'Disabling shacccg extensions for Vita3K build target'
             sed -i'' "s@^//${target_macro}@${target_macro}@" -- source/vitashark.c
-            __log "The following line should be uncommented:"
-            grep --color=never "$target_macro" source/vitashark.c
         fi
         make && make install
         popd > /dev/null
@@ -115,7 +116,7 @@ if ! [ -d "$VITASDK" ]; then
 
 
         ### vitaGL
-        __log 'Building vitaGL...'
+        __log '\e[34mBuilding vitaGL\e[0m'
         cd "$VITASDK"
         git clone --quiet https://github.com/Rinnegatamante/vitaGL
         pushd vitaGL > /dev/null
@@ -132,12 +133,25 @@ if ! [ -d "$VITASDK" ]; then
 
 
         ### Install Vita3K if that's the target platform
-        if [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]]; then
-            
+        if [ -v PLATFORM_IS_3K ]; then
+            VITA3K_DIR="$VITASDK/Vita3K"
+            __log "\e[34mInstalling the Vita3K emulator to $VITA3K_DIR\e[0m"
+            mkdir "$VITA3K_DIR" && cd "$VITA3K_DIR"
+            curl -L# $VITA3K_ZIP_URL -o vita3k.zip
+            unzip -q -o -a vita3k.zip
+            rm vita3k.zip
+            chmod +x ./Vita3K
+            VITA3K_SHACCCG_DIR="$VITA3K_DIR/config/ur0/data/external"
+            VITA3K_SHACCCG_URL='https://github.com/AnimMouse/SceShaccCg/raw/main/libshacccg.suprx'
+            mkdir -p "$VITA3K_SHACCCG_DIR"
+            curl -sL $VITA3K_SHACCCG_URL -o "$VITA3K_SHACCCG_DIR/libshacccg.suprx"
+            echo "pref-path: $VITA3K_DIR/config/" >> config.yml
+            ln -svf "$PWD/Vita3K" "$VITASDKBIN/Vita3K"
+            __log "\e[33mVita3K emulator installed in $VITA3K_DIR, run \`\e[1mVita3K\e[22m\` to launch.\e[0m"
         fi
 
 
         ### Environment ready
-        __log "\e[92mvita SDK environment for $VITASDK_PLATFORM builds created in $VITASDK.\e[0m"
+        __log "\e[32mvita SDK environment for $VITASDK_PLATFORM builds created in $VITASDK\e[0m"
     )
 fi
