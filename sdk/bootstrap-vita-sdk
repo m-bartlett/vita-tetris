@@ -162,6 +162,7 @@ if ! [ -d "$VITASDK" ]; then
             echo "discord-rich-presence: false"   >> config.yml
             echo "user-id: 00"                    >> config.yml
             echo "user-auto-connect: true"        >> config.yml
+            echo "show-welcome: false"            >> config.yml
             mkdir -p config/ux0/user/00
             echo '<?xml version="1.0" encoding="utf-8"?><user id="00" name="User1"><avatar>default</avatar><sort-apps-list type="4" state="1" /><theme use-background="true"><content-id>default</content-id></theme><start-screen type="default"><path></path></start-screen><backgrounds /></user>' >> config/ux0/user/00/user.xml
             __log "\e[33mVita3K emulator installed in $VITA3K_DIR, run \`\e[1mVita3K\e[22m\` to launch.\e[0m"
