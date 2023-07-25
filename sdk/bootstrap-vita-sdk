@@ -43,19 +43,22 @@ if ((__executed)); then
   exit 0
 fi
 
+export VITASDK=${VITASDK:-"$__dir/${VITASDK_PLATFORM}${VITASDK_PLATFORM_SUFFIX}"}
+export VITASDKBIN="$VITASDK/bin"
+[[ "$PATH" =~ $VITASDKBIN ]] || export PATH="$VITASDKBIN:$PATH"
+
 [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]] && declare PLATFORM_IS_3K=1
 
 if [ -v PLATFORM_IS_3K ]; then
     __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\] 3K \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+    export VITA3K_DIR="$VITASDK/Vita3K"
+    [[ "$PATH" =~ $VITA3K_DIR ]] || export PATH="$VITA3K_DIR:$PATH"
 else
     __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\]vita\[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
 fi
 __prefix_formatted="${__prefix@P}"
 
 export PS1="$__prefix "
-export VITASDK=${VITASDK:-"$__dir/${VITASDK_PLATFORM}${VITASDK_PLATFORM_SUFFIX}"}
-export VITASDKBIN="$VITASDK/bin"
-[[ "$PATH" =~ $VITASDKBIN ]] || export PATH="$VITASDKBIN:$PATH"
 
 
 vita-serve() {
@@ -83,6 +86,16 @@ if ! [ -d "$VITASDK" ]; then
     (
         set -o errexit -o nounset
 
+        __cleanup() {
+            __log "\e[31mAn error occurred while installing vita SDK in $VITASDK\e[0m"
+            __log "$VITASDK will be deleted as it is in an undefined state."
+            __log "Please re-run the installer command."
+            command rm -rf "$VITASDK"
+            exit 1
+        }
+        trap __cleanup EXIT
+
+
         ### vita SDK via vdpm
         __log "\e[34mBootstrapping vita SDK in $VITASDK\e[0m"
         sleep 1
@@ -90,9 +103,10 @@ if ! [ -d "$VITASDK" ]; then
         trap "rm -rf $SDKTMP" EXIT
         git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$SDKTMP"
         pushd "$SDKTMP" > /dev/null
-        ./bootstrap-vitasdk.sh
-        ./install-all.sh 2>/dev/null
+        ./bootstrap-vitasdk.sh 1>/dev/null
         rm /tmp/vdpm_install_* ||:    # ignore vdpm update cache
+        ./install-all.sh 2>/dev/null
+        rm /tmp/vdpm_install_* ||:    # clear vdpm update cache
         trap '' EXIT
         __log 'vita SDK initialized, cleaning up'
         popd > /dev/null
@@ -134,8 +148,7 @@ if ! [ -d "$VITASDK" ]; then
 
         ### Install Vita3K if that's the target platform
         if [ -v PLATFORM_IS_3K ]; then
-            VITA3K_DIR="$VITASDK/Vita3K"
-            __log "\e[34mInstalling the Vita3K emulator to $VITA3K_DIR\e[0m"
+            __log "\e[34mInstalling the Vita3K emulator to ${VITA3K_DIR:?}\e[0m"
             mkdir "$VITA3K_DIR" && cd "$VITA3K_DIR"
             curl -L# $VITA3K_ZIP_URL -o vita3k.zip
             unzip -q -o -a vita3k.zip
@@ -146,12 +159,17 @@ if ! [ -d "$VITASDK" ]; then
             mkdir -p "$VITA3K_SHACCCG_DIR"
             curl -sL $VITA3K_SHACCCG_URL -o "$VITA3K_SHACCCG_DIR/libshacccg.suprx"
             echo "pref-path: $VITA3K_DIR/config/" >> config.yml
-            ln -svf "$PWD/Vita3K" "$VITASDKBIN/Vita3K"
+            echo "discord-rich-presence: false"   >> config.yml
+            echo "user-id: 00"                    >> config.yml
+            echo "user-auto-connect: true"        >> config.yml
+            mkdir -p config/ux0/user/00
+            echo '<?xml version="1.0" encoding="utf-8"?><user id="00" name="User1"><avatar>default</avatar><sort-apps-list type="4" state="1" /><theme use-background="true"><content-id>default</content-id></theme><start-screen type="default"><path></path></start-screen><backgrounds /></user>' >> config/ux0/user/00/user.xml
             __log "\e[33mVita3K emulator installed in $VITA3K_DIR, run \`\e[1mVita3K\e[22m\` to launch.\e[0m"
         fi
 
 
         ### Environment ready
         __log "\e[32mvita SDK environment for $VITASDK_PLATFORM builds created in $VITASDK\e[0m"
+        trap '' EXIT
     )
 fi
