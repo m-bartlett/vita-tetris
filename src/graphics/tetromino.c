@@ -16,7 +16,7 @@ void graphics_tetromino_init(void)
     glGenBuffers(1, &vertex_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
     glBufferData(/* type */  GL_ARRAY_BUFFER,
-                 /* size */  ARRAY_SIZE(vertex_buffer),
+                 /* size */  sizeof(vertex_buffer),
                  /* data */  vertex_buffer,
                  /* usage */ GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

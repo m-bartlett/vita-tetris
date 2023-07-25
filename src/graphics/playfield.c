@@ -9,47 +9,51 @@
 
 
 static GLuint vertex_buffer_id;
-static graphics_block_vertex_t vertex_buffer[VERTEX_COUNT_MAX];
+static graphics_block_vertex_t vertex_buffer[VERTEX_COUNT_MAX]={{0}};
 static uint32_t vertex_buffer_size;
 
 void graphics_playfield_convert_grid_to_block_vertices(void)
 { //{{{
-    uint8_t y=0, x=0, y1=0, x1=0, r=PLAYFIELD_HEIGHT-1;
+    uint8_t y=0, x=0, r=PLAYFIELD_HEIGHT-1;
     playfield_view_t playfield = playfield_view();
     vertex_buffer_size = 0;
     
     while (y < PLAYFIELD_HEIGHT) {
-        y1 = y+1;
         x = 0;
-        const char* row = playfield[r--];
+        const int8_t* row = playfield[r--];
 
         while (x < PLAYFIELD_WIDTH) {
-            const uint8_t B = row[x];
-            x1 = x+1;
-            if (B != 0)
+            uint8_t block_type = (uint8_t)row[x];
+            if (block_type != 0)
                 graphics_block_add_block_to_vertex_buffer(x,
                                                           y,
-                                                          B,
+                                                          block_type,
                                                           vertex_buffer,
                                                           &vertex_buffer_size);
-            x = x1;
+            ++x;
         }
-        y = y1;
+        ++y;
     }
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    glBufferSubData(/* target */ GL_ARRAY_BUFFER,
+                    /* offset */ 0,
+                    /*  size  */ sizeof(graphics_block_vertex_t)*vertex_buffer_size,
+                    /*  data  */ vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 /*}}}*/ }
 
 
 void graphics_playfield_init(void)
 { //{{{
     graphics_playfield_convert_grid_to_block_vertices();
-
     glGenBuffers(1, &vertex_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
     glBufferData(/* type */  GL_ARRAY_BUFFER,
-                 /* size */  ARRAY_SIZE(vertex_buffer),
+                 /* size */  sizeof(vertex_buffer),
                  /* data */  vertex_buffer,
                  /* usage */ GL_DYNAMIC_DRAW);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 /*}}}*/ }
 
 

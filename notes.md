@@ -19,3 +19,6 @@
 Textures have 8 or 16 slots. Not sure how big each slot is. You can activate the slot 
 
 - https://en.wikipedia.org/wiki/Stdarg.h#Declaring_variadic_functions for printf-style indefinite args
+
+
+- **glBufferSubData**!!!!!
