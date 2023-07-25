@@ -3,19 +3,17 @@ TITLEID    := VGLTETRIS
 TARGET	   := vitetris
 TARGETVPK  := $(TARGET).vpk
 
-VITA3K := $(shell command -v Vita3K)
-VITA3K_DIR := $(shell dirname $(VITA3K) 2>/dev/null)
-VITA3K_APP_DIR := $(VITA3K_DIR)/config/ux0/app/$(TITLEID)
-
 PROJECT_ROOT := $(shell git rev-parse --show-toplevel)
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 VITASDK_DIR := $(PROJECT_ROOT)/sdk
 VITASDK_ENV_SCRIPT := $(shell find $(VITASDK_DIR) -maxdepth 1 -type f -executable)
-TARGET_PLATFORM ?= Vita3K
+
+VITA3K := $(shell command -v Vita3K)
+VITA3K_DIR := $(shell dirname $(VITA3K) 2>/dev/null)
+VITA3K_APP_DIR := $(VITA3K_DIR)/config/ux0/app/$(TITLEID)
 
 ifndef VITASDK
 $(error VITASDK is undefined in the environment. Please execute or source $(VITASDK_ENV_SCRIPT))
-# $(shell source "$(VITASDK_ENV_SCRIPT)" "$(TARGET_PLATFORM)" && $(MAKE) $(MAKEFLAGS) $(MAKEOVERRIDES) $(MAKECMDGOALS))
 endif
 
 SOURCE_DIR := src
@@ -48,7 +46,7 @@ endif
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize $(FEATURE_FLAGS)
+CFLAGS  = -g -Wl,-q -O2 -ftree-vectorize $(FEATURE_FLAGS) -Werror
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11 -fpermissive
 ASFLAGS = $(CFLAGS)
 
@@ -113,11 +111,10 @@ endif
 	if [ -d "$(VITA3K_APP_DIR)" ]; then \
 		cp -v eboot.bin "$(VITA3K_APP_DIR)/" ;\
 		cp -v param.sfo "$(VITA3K_APP_DIR)/sce_sys/" ;\
-		cp -v -r "$(SOURCE_DIR)/shader" "$(SOURCE_DIR)/texture" "$(VITA3K_APP_DIR)/" ;\
+		cp -v -r "$(SOURCE_DIR)/graphics/shader" \
+				 "$(SOURCE_DIR)/graphics/texture" \
+				 "$(VITA3K_APP_DIR)/" ;\
 		Vita3K -B Vulkan --installed-path $(TITLEID) ;\
 	else \
 		Vita3K -B Vulkan -- "$(MAKEFILE_DIR)$(TARGETVPK)" ;\
 	fi
-
-vita:
-	TARGET_PLATFORM=vita $(MAKE) $(TARGET)
