@@ -54,7 +54,7 @@ void load_shader(const char *shader_path, GLuint *program) {
    FILE *f = fopen(shader_path, "r");
    if (!f) {printf("Shader error\n\n"); return; }
    fseek(f, 0, SEEK_END);
-   uint32_t shader_size = ftell(f);
+   const int32_t shader_size = ftell(f);
    fseek(f, 0, SEEK_SET);
    char shader_body[shader_size+1];
    fread(shader_body, 1, shader_size, f);
@@ -85,8 +85,8 @@ static inline void vgl_init() {
 
 void graphics_init() {
    vgl_init();
-   graphics_block_init();
    graphics_background_init();
+   graphics_block_init();
    // graphics_text_init();
    // graphics_menu_init();
    graphics_playfield_init();
