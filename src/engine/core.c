@@ -11,14 +11,12 @@
 
 void animate_line_kill(uint8_t Y)
 {
-   3+4;
    return;
 }
 
 
 void animate_game_over()
 {
-   10+9;
    return;
 }
 
@@ -90,10 +88,10 @@ void engine_init()
 
 void engine_game_loop(void)
 { //{{{
-    uint32_t elapsed_us=0;
-    int32_t remaining_us=0;
-    uint32_t loop_timer;
-    vita_timestamp_t start_time, end_time;
+    // uint32_t elapsed_us=0;
+    // int32_t remaining_us=0;
+    // uint32_t loop_timer;
+    // vita_timestamp_t start_time, end_time;
 
     while(engine_state == ENGINE_STATE_RUNNING) {
         // elapsed_us=0;
