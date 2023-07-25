@@ -29,7 +29,7 @@ void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
 void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_size);
 void graphics_block_add_block_to_vertex_buffer(uint8_t x,
                                                uint8_t y,
-                                               uint8_t B,
+                                               uint8_t block_type,
                                                graphics_block_vertex_t *vertex_buffer,
                                                uint32_t *vertex_buffer_size);
 

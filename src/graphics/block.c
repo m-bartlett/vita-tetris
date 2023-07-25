@@ -25,7 +25,7 @@ static GLuint ViewMatrix_location,
               LightPosition_location;
 
 #define Z_INITIAL_OFFSET -20
-static GLfloat user_offset[3] = { 0.0, 0.0, Z_INITIAL_OFFSET };
+// static GLfloat user_offset[3] = { 0.0, 0.0, Z_INITIAL_OFFSET };
 static GLfloat ViewMatrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
                                   [12]=-PLAYFIELD_WIDTH/2,
                                   [13]=-PLAYFIELD_HEIGHT/2,
@@ -48,6 +48,7 @@ void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
     translate(ModelMatrix, x, y, 0);
     glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
 /*}}}*/ }
+
 
 
 void graphics_block_set_model_matrix_2D(float x, float y)
@@ -176,50 +177,50 @@ void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_siz
 /*}}}*/ }
 
 
-
 void graphics_block_add_block_to_vertex_buffer(uint8_t x,
                                                uint8_t y,
-                                               uint8_t B,
+                                               uint8_t block_type,
                                                graphics_block_vertex_t *vertex_buffer,
                                                uint32_t *vertex_buffer_size)
 { //{{{
     const uint8_t x1=x+1, y1=y+1;
 
 #define ADD_VERTEX(...) \
-    vertex_buffer[(*vertex_buffer_size)++]=(graphics_block_vertex_t){__VA_ARGS__}
+    vertex_buffer[(*vertex_buffer_size)++] = (graphics_block_vertex_t){__VA_ARGS__}
 
-    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=B, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=B, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=B, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=B, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_FRONT);
+    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_FRONT);
 
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=B, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0, .v=2, .block=B, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=B, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=B, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=B, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=block_type, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0, .v=2, .block=block_type, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=block_type, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_LEFT);
+    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_LEFT);
 
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=B, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=B, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=B, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=B, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=B, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=3, .v=1, .block=B, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=block_type, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=block_type, .face=FACE_RIGHT);
+    ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=3, .v=1, .block=block_type, .face=FACE_RIGHT);
 
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=B, .face=FACE_TOP);
-    ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=1, .v=3, .block=B, .face=FACE_TOP);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=B, .face=FACE_TOP);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=B, .face=FACE_TOP);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=B, .face=FACE_TOP);
-    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=B, .face=FACE_TOP);
+    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_TOP);
+    ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=1, .v=3, .block=block_type, .face=FACE_TOP);
+    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=block_type, .face=FACE_TOP);
+    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_TOP);
+    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=block_type, .face=FACE_TOP);
+    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_TOP);
 
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=B, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=B, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=B, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=B, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=B, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=2, .v=0, .block=B, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=block_type, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=block_type, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_BOTTOM);
+    ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=2, .v=0, .block=block_type, .face=FACE_BOTTOM);
+    
 /*}}}*/}
