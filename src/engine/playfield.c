@@ -5,11 +5,17 @@
 const uint8_t PLAYFIELD_WIDTH_1 = PLAYFIELD_WIDTH - 1, PLAYFIELD_HEIGHT_1 = PLAYFIELD_HEIGHT - 1,
               PLAYFIELD_WIDTH1  = PLAYFIELD_WIDTH + 1, PLAYFIELD_HEIGHT1  = PLAYFIELD_HEIGHT + 1;
 
-static const uint8_t X_MAX = PLAYFIELD_WIDTH+2;
+// static const uint8_t X_MAX = PLAYFIELD_WIDTH+2;
 static int8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH]={{0}};
 
 
 playfield_view_t playfield_view(void) { return (playfield_view_t)PLAYFIELD; }
+
+
+// int8_t playfield_get_block_at_coordinate(uint8_t X, uint8_t Y)
+// { //{{{
+//     return PLAYFIELD[Y][X];
+// /*}}}*/ }
 
 
 uint16_t playfield_get_4x4_vacancy_at_coordinate(uint8_t X, uint8_t Y)
@@ -102,6 +108,7 @@ uint8_t playfield_clear_lines(void (*callback)(uint8_t))
     }
     return lines;
 /*}}}*/ }
+
 
 void playfield_set(const char* cells, const size_t size, const size_t offset)
 { //{{{
