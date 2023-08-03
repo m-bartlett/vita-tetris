@@ -37,6 +37,9 @@ LIBS := -lvitaGL \
 
 SOURCE_FILES := $(shell find $(SOURCE_DIR) -type f -name '*.c')
 OBJECTS     := $(SOURCE_FILES:.c=.o)
+HEADERS     := $(SOURCE_FILES:.c=.h)
+VPK_ASSET_FILES := $(shell find $(PROJECT_ROOT)/sce_sys -type f)
+
 
 FEATURE_FLAGS :=
 ifneq ($(DEBUG),)
@@ -79,8 +82,9 @@ echo:
 	@echo "ASFLAGS = $(ASFLAGS)"
 
 
-# %.o: %.c %.h Makefile
-# 	$(CC) $(CFLAGS) -c -o $@ $<
+%.o: %.c %.h Makefile
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 
 $(TARGET).elf: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
@@ -91,13 +95,14 @@ $(TARGET).elf: $(OBJECTS)
 eboot.bin: $(TARGET).velf
 	vita-make-fself $< eboot.bin	
 
-$(TARGETVPK): eboot.bin
+$(TARGETVPK): eboot.bin $(VPK_ASSET_FILES)
 	vita-mksfoex -s TITLE_ID=$(TITLEID) "$(TARGET)" param.sfo
 	vita-pack-vpk \
-		-s param.sfo \
-		-b eboot.bin \
-		-a "$(SOURCE_DIR)/graphics/texture=texture" \
-		-a "$(SOURCE_DIR)/graphics/shader=shader" \
+		--sfo=param.sfo \
+		--eboot=eboot.bin \
+		--add "sce_sys=sce_sys" \
+		--add "$(SOURCE_DIR)/graphics/texture=texture" \
+		--add "$(SOURCE_DIR)/graphics/shader=shader" \
 		$@
 	
 clean:
@@ -113,6 +118,7 @@ endif
 		cp -v param.sfo "$(VITA3K_APP_DIR)/sce_sys/" ;\
 		cp -v -r "$(SOURCE_DIR)/graphics/shader" \
 				 "$(SOURCE_DIR)/graphics/texture" \
+				 sce_sys/ \
 				 "$(VITA3K_APP_DIR)/" ;\
 		Vita3K -B Vulkan --installed-path $(TITLEID) ;\
 	else \
