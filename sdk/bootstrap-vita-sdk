@@ -83,6 +83,7 @@ vita-ftp() {
 }
 
 if ! [ -d "$VITASDK" ]; then
+    set -o errexit
     (
         set -o errexit -o nounset
 
@@ -190,7 +191,7 @@ if ! [ -d "$VITASDK" ]; then
         git clone --quiet https://github.com/Rinnegatamante/vitaGL
         pushd vitaGL > /dev/null
         make clean &>/dev/null
-        if [[ "$VITASDK_PLATFORM" == 'Vita3K' ]]; then
+        if [ -v PLATFORM_IS_3K ]; then
             export HAVE_VITA3K_SUPPORT=1
             __log 'Compiling vitaGL with Vita3K support...'
         fi
@@ -229,4 +230,5 @@ if ! [ -d "$VITASDK" ]; then
         __log "\e[32mvita SDK environment for $VITASDK_PLATFORM builds created in $VITASDK\e[0m"
         trap '' EXIT
     )
+    set +o errexit
 fi

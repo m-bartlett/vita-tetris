@@ -1,6 +1,6 @@
 
 TITLEID    := VGLTETRIS
-TARGET	   := vitetris
+TARGET	   := ViTetris
 TARGETVPK  := $(TARGET).vpk
 
 PROJECT_ROOT := $(shell git rev-parse --show-toplevel)
@@ -109,9 +109,10 @@ clean:
 	@rm -rfv *.velf *.elf *.vpk $(OBJECTS) param.sfo eboot.bin
 
 3k: $(TARGETVPK) param.sfo eboot.bin
-ifndef VITA3K
-$(error No executable named Vita3K was found, please add the Vita3K install directory to $$PATH)
-endif
+	if [ -z "$(VITA3K)" ]; then \
+		echo "No executable named Vita3K was found, please add Vita3K directory to \$PATH";\
+		exit 1;\
+	fi ;\
 	$(MAKE) $(TARGETVPK)
 	if [ -d "$(VITA3K_APP_DIR)" ]; then \
 		cp -v eboot.bin "$(VITA3K_APP_DIR)/" ;\
