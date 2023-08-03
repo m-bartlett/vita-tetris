@@ -86,35 +86,90 @@ if ! [ -d "$VITASDK" ]; then
     (
         set -o errexit -o nounset
 
-        __cleanup() {
+        stream-window-of-lines() {
+            local lines=()
+            local linecount=${1:-10}
+            local linesofar=0
+            local lineidx=0
+            local header=''
+
+            for ((i=0;i<linecount;i++)); do lines[$i]=' '; done
+
+            _nonring_printlines() {
+                if ((linesofar>linecount)); then
+                    printlines=_ring_printlines
+                    _ring_printlines
+                else
+                    echo -e '\e[1F\e[0J'
+                    for ((i=0;i<lineidx;i++)); do echo "${lines[i]}"; done
+                    for ((i=lineidx;i<linecount;i++)); do echo "${lines[i]}"; done
+                fi
+            }
+
+            _ring_printlines() {
+                for ((i=lineidx;i<linecount;i++)); do echo "${lines[i]}"; done
+                for ((i=0;i<lineidx;i++)); do echo "${lines[i]}"; done
+            }
+
+            local printlines=_nonring_printlines
+
+            addline() {
+                lines[$lineidx]="$@"
+                ((++lineidx >= linecount)) && lineidx=0
+                ((++linesofar))
+                local lineheight=0 newlines=0
+                local width=$(tput cols)
+                for ((i=0;i<linecount;i++)); do
+                    newlines=$((${#lines[i]}/(width+1) + 1))
+                    ((lineheight += newlines ))
+                done
+
+                local header=" ... $linesofar lines of output ..."
+                ((lineheight += $((${#header}/(width+1) + 1)) ))
+
+                echo -ne '\e[0J'
+                echo -e "\e[1m$header\e[0m"
+                $printlines
+                echo -ne "\e[${lineheight}F"
+            }
+
+            while read line; do addline "$line"; done
+
+            echo -e "\e[1m$header\e[0m"
+            echo -ne '\e[0J'
+        }
+
+
+        __error_cleanup() {
             __log "\e[31mAn error occurred while installing vita SDK in $VITASDK\e[0m"
             __log "$VITASDK will be deleted as it is in an undefined state."
             __log "Please re-run the installer command."
-            command rm -rf "$VITASDK"
+            command rm -rf "$VITASDK" &>/dev/null
             exit 1
         }
-        trap __cleanup EXIT
+        trap __error_cleanup EXIT
 
 
         ### vita SDK via vdpm
-        __log "\e[34mBootstrapping vita SDK in $VITASDK\e[0m"
+        __log "\e[36mBootstrapping vita SDK in $VITASDK\e[0m"
         sleep 1
         SDKTMP="$(mktemp -d)"
-        trap "rm -rf $SDKTMP" EXIT
+        trap "rm -rf $SDKTMP&>/dev/null ; __error_cleanup" EXIT
         git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$SDKTMP"
         pushd "$SDKTMP" > /dev/null
-        ./bootstrap-vitasdk.sh 1>/dev/null
-        rm /tmp/vdpm_install_* ||:    # ignore vdpm update cache
-        ./install-all.sh 2>/dev/null
-        rm /tmp/vdpm_install_* ||:    # clear vdpm update cache
+        ./bootstrap-vitasdk.sh |&  stream-window-of-lines
+        rm /tmp/vdpm_install_* &>/dev/null ||:    # ignore vdpm update cache
+        __log "\e[36mInstalling vita SDK modules\e[0m"
+        ./install-all.sh 2>/dev/null |  stream-window-of-lines
+        rm /tmp/vdpm_install_* &>/dev/null ||:    # clear vdpm update cache
         trap '' EXIT
         __log 'vita SDK initialized, cleaning up'
         popd > /dev/null
-        command rm -rf "$SDKTMP"
+        rm -rf "$SDKTMP" &>/dev/null
 
 
         ### vitaShaRK
-        __log '\e[34mBuilding vitaShaRK\e[0m'
+        __log '\e[36mBuilding vitaShaRK\e[0m'
         cd "$VITASDK"
         git clone --quiet https://github.com/Rinnegatamante/vitaShaRK
         pushd vitaShaRK > /dev/null
@@ -123,24 +178,25 @@ if ! [ -d "$VITASDK" ]; then
             __log 'Disabling shacccg extensions for Vita3K build target'
             sed -i'' "s@^//${target_macro}@${target_macro}@" -- source/vitashark.c
         fi
-        make && make install
+        make && make install 
         popd > /dev/null
         __log 'vitaShaRK installed, cleaning up'
         command rm -rf vitaShaRK
 
 
         ### vitaGL
-        __log '\e[34mBuilding vitaGL\e[0m'
+        __log '\e[36mBuilding vitaGL\e[0m'
         cd "$VITASDK"
         git clone --quiet https://github.com/Rinnegatamante/vitaGL
         pushd vitaGL > /dev/null
-        make clean
+        make clean &>/dev/null
         if [[ "$VITASDK_PLATFORM" == 'Vita3K' ]]; then
             export HAVE_VITA3K_SUPPORT=1
             __log 'Compiling vitaGL with Vita3K support...'
         fi
         # export HAVE_GLSL_SUPPORT=1
-        make && make install
+        make |&  stream-window-of-lines 5
+        make install
         popd > /dev/null
         __log 'vitaGL installed, cleaning up'
         command rm -rf vitaGL
@@ -148,7 +204,7 @@ if ! [ -d "$VITASDK" ]; then
 
         ### Install Vita3K if that's the target platform
         if [ -v PLATFORM_IS_3K ]; then
-            __log "\e[34mInstalling the Vita3K emulator to ${VITA3K_DIR:?}\e[0m"
+            __log "\e[36mInstalling the Vita3K emulator to ${VITA3K_DIR:?}\e[0m"
             mkdir "$VITA3K_DIR" && cd "$VITA3K_DIR"
             curl -L# $VITA3K_ZIP_URL -o vita3k.zip
             unzip -q -o -a vita3k.zip
