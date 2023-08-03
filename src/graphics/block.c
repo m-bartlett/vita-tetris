@@ -170,8 +170,8 @@ void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_siz
                          /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,u));
 
    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
-   glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TYPE_LOCATION,
-                         /* dimension */ 2,
+   glVertexAttribPointer(/* location(index) */  VERTEX_ATTRIBUTE_TYPE_LOCATION,
+                         /* dimension(size) */ 2,
                          /* type */      GL_UNSIGNED_BYTE,
                          /* normalize */ GL_FALSE,
                          /* stride */    sizeof(graphics_block_vertex_t),
