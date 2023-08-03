@@ -7,6 +7,7 @@
 #include "../lib/timer.h"
 #include "../lib/shuffle7.h"
 #include "../graphics/core.h"
+#include "../graphics/tetromino.h"
 #include "../graphics/playfield.h"
 
 void animate_line_kill(uint8_t Y)
@@ -43,7 +44,7 @@ static uint8_t X, Y;
 static int8_t Y_hard_drop = -1;
 static tetromino_type_t held_tetromino = TETROMINO_TYPE_NULL;
 static bool tetromino_swapped = false;
-static engine_state_t engine_state = ENGINE_STATE_UNINITIALIZED;
+static engine_state_t engine_state = ENGINE_STATE_NULL;
 
 static uint32_t gravity_delay = ENGINE_GRAVITY_INITIAL_DELAY_MICROSECONDS;
 static vita_timestamp_t drop_lock_timer = {0};
@@ -88,26 +89,27 @@ void engine_init()
 
 void engine_game_loop(void)
 { //{{{
-    // uint32_t elapsed_us=0;
-    // int32_t remaining_us=0;
-    // uint32_t loop_timer;
-    // vita_timestamp_t start_time, end_time;
+    uint32_t elapsed_us=0;
+    int32_t remaining_us=0;
+    uint32_t loop_timer;
+    vita_timestamp_t start_time, end_time;
+    uint32_t frames=0;
 
     while(engine_state == ENGINE_STATE_RUNNING) {
-        // elapsed_us=0;
-        // remaining_us=0;
-        // timer_set_current_time(&start_time);
+        elapsed_us=0;
+        remaining_us=0;
+        timer_set_current_time(&start_time);
 
-        input_read_and_run_callbacks();
+        if ((++frames)%INPUT_DEBOUNCE_FRAMES == 0) input_read_and_run_callbacks();
+
         engine_update_gravity();
         engine_check_drop_lock();
         graphics_draw_game();
 
-        // timer_set_current_time(&end_time);
-        // elapsed_us = timer_get_elapsed_microseconds(&start_time, &end_time);
-        // remaining_us = ENGINE_MICROSECONDS_PER_FRAME - elapsed_us;
-        // if (remaining_us > 0) usleep(remaining_us);
-
+        timer_set_current_time(&end_time);
+        elapsed_us = timer_get_elapsed_microseconds(&start_time, &end_time);
+        remaining_us = ENGINE_MICROSECONDS_PER_FRAME - elapsed_us;
+        if (remaining_us > 0) sceKernelDelayThread(remaining_us);
     }
 
     switch(engine_state) {

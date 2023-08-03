@@ -1,11 +1,10 @@
 #include "input.h"
 #include <vitasdk.h>
 
-static SceCtrlData input;
+static SceCtrlData input, debounce;
 
 static void NULL_FUNC(void){};
 static void NULL_FUNC_ANALOG(unsigned char x, unsigned char y){};
-
 
 #define DECLARE_BUTTON_CALLBACK_AND_SETTER(BUTTON) \
    static void (*input_callback_ ## BUTTON)(void) = NULL_FUNC; \
@@ -47,15 +46,17 @@ void input_init() {
    sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 }
 
-
-#define IS_PRESSED(button) (input.buttons & button)
+#define IS_PRESSED_HOLDABLE(button) (input.buttons & button)
+#define IS_PRESSED(button) ((!(debounce.buttons & button)) && (input.buttons & button))
+ 
 void input_read_and_run_callbacks()
 {
    sceCtrlPeekBufferPositive(0, &input, 1);
+   
    if (IS_PRESSED(SCE_CTRL_UP))       input_callback_up();
-   if (IS_PRESSED(SCE_CTRL_RIGHT))    input_callback_right();
-   if (IS_PRESSED(SCE_CTRL_DOWN))     input_callback_down();
-   if (IS_PRESSED(SCE_CTRL_LEFT))     input_callback_left();
+   if (IS_PRESSED_HOLDABLE(SCE_CTRL_RIGHT))    input_callback_right();
+   if (IS_PRESSED_HOLDABLE(SCE_CTRL_DOWN))     input_callback_down();
+   if (IS_PRESSED_HOLDABLE(SCE_CTRL_LEFT))     input_callback_left();
 
    if (IS_PRESSED(SCE_CTRL_TRIANGLE)) input_callback_triangle();
    if (IS_PRESSED(SCE_CTRL_CIRCLE))   input_callback_circle();
@@ -74,4 +75,6 @@ void input_read_and_run_callbacks()
 
    input_callback_analog_left(input.lx, input.ly);
    input_callback_analog_right(input.rx, input.ry);
+
+   debounce = input;
 }

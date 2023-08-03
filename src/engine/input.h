@@ -1,6 +1,10 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include "core.h"
+
+#define INPUT_DEBOUNCE_FRAMES 2
+
 #define ANALOGS_DEADZONE 1
 
 void input_init();

@@ -10,7 +10,8 @@
 #define ENGINE_FRAMES_PER_SECOND 30
 #define ENGINE_MICROSECONDS_PER_FRAME (1000000/ENGINE_FRAMES_PER_SECOND)
 
-enum engine_state_enum { ENGINE_STATE_UNINITIALIZED=0,
+
+enum engine_state_enum { ENGINE_STATE_NULL=0,
                          ENGINE_STATE_RUNNING,
                          ENGINE_STATE_LOSE,
                          ENGINE_STATE_WIN,
