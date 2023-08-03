@@ -37,5 +37,6 @@ void engine_rotate_active_tetromino_clockwise();
 void engine_rotate_active_tetromino_counterclockwise();
 void engine_hard_drop_tetromino();
 void engine_soft_drop_tetromino();
+uint32_t engine_rng_get_sample();
 
 #endif

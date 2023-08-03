@@ -79,7 +79,7 @@ void engine_init()
 
     input_set_callback_start(engine_input_callback_start);
 
-    bag_of_7_init(0); // TO-DO: Get time for random seed
+    bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     timer_set_current_time(&gravity_timer);
     engine_state = ENGINE_STATE_RUNNING;
@@ -350,6 +350,7 @@ void engine_rotate_active_tetromino_counterclockwise()  // Rotation with wallkic
     goto invalid_exit;
 
 valid_exit:
+    graphics_tetromino_set_model_orientation(&tetromino, X, Y);
     timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
     return;
 
@@ -357,3 +358,10 @@ invalid_exit:
     tetromino_rotate_clockwise(&tetromino); // undo rotation if no kicks are valid
     return;
 /*}}}*/ }
+
+
+uint32_t engine_rng_get_sample() {
+    uint32_t sample;
+    sceKernelGetRandomNumber(&sample, sizeof(sample));
+    return sample;
+}
