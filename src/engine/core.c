@@ -173,6 +173,7 @@ void engine_spawn_tetromino(tetromino_type_t type)
             engine_state = ENGINE_STATE_LOSE;  // Game is over if there's no room for a new piece.
         }
     }
+    graphics_tetromino_set_model_orientation(&tetromino, X, Y);
 /*}}}*/}
 
 
@@ -220,6 +221,7 @@ bool engine_move_active_tetromino(int8_t dx, uint8_t dy)
     if (playfield_validate_tetromino_placement(&tetromino, _X, _Y)) {
         X=_X;
         Y=_Y;
+        graphics_tetromino_set_model_orientation(&tetromino, X, Y);
         return true;
     }
     return false;
@@ -267,7 +269,7 @@ void engine_swap_held_tetromino_with_active(void)
 void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
 { //{{{
     playfield_place_tetromino(&tetromino, x, y);
-    graphics_playfield_convert_grid_to_block_vertices();
+    graphics_playfield_update_mesh();
     uint8_t lines = playfield_clear_lines(graphics_animate_line_kill);
     uint8_t new_level = scoring_add_line_clears(lines);
     if (new_level) {
@@ -311,6 +313,7 @@ void engine_rotate_active_tetromino_clockwise()  // Rotation with wallkicks
     goto invalid_exit;
 
     valid_exit:
+        graphics_tetromino_set_model_orientation(&tetromino, X, Y);
         timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
         return;
 

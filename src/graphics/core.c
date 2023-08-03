@@ -44,7 +44,7 @@ static const size_t GAME_OVER_PLAYFIELD_SIZE = ARRAY_SIZE(GAME_OVER_PLAYFIELD);
 */
 
 
-void load_shader(const char *shader_path, GLuint *program) {
+void load_shader(const char *shader_path, GLuint *program) { //{{{
    GLuint shader_type;
    if (strstr(shader_path, ".vert") == NULL) shader_type = GL_FRAGMENT_SHADER;
    else {
@@ -69,7 +69,7 @@ void load_shader(const char *shader_path, GLuint *program) {
                   /* string length(s) */ &shader_size);
    glCompileShader(shader_ref);
    glAttachShader(*program, shader_ref);
-}
+/*}}}*/ }
 
 
 static inline void vgl_init() {
@@ -122,12 +122,14 @@ void graphics_draw_held_tetromino()
 
 void graphics_draw_active_tetromino()
 {
+   graphics_tetromino_draw(engine_get_active_tetromino());
    return;
 }
 
 
 void graphics_draw_hard_drop_preview()
 {
+   engine_update_hard_drop_y();
    return;
 }
 
@@ -163,6 +165,8 @@ void graphics_draw_game()
 
 void graphics_animate_line_kill(uint8_t Y)
 {
+   // TO-DO animate the line kill
+   graphics_playfield_update_mesh();
    return;
 }
 

@@ -1,0 +1,30 @@
+#ifndef GRAPHICS_TETROMINO_MESHES_H
+#define GRAPHICS_TETROMINO_MESHES_H
+
+#include "block.h"
+
+#define TETROMINO_MEDIAN_MESH_SIZE 56
+#define TETROMINO_TYPE_I_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+#define TETROMINO_TYPE_O_MESH_SIZE 48
+#define TETROMINO_TYPE_T_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+#define TETROMINO_TYPE_J_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+#define TETROMINO_TYPE_L_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+#define TETROMINO_TYPE_S_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+#define TETROMINO_TYPE_Z_MESH_SIZE TETROMINO_MEDIAN_MESH_SIZE
+
+const unsigned int graphics_tetromino_get_mesh_size(tetromino_type_t type);
+const graphics_block_ROM_vertex_t*
+    graphics_tetromino_get_mesh_ROM_vertex_buffer(tetromino_type_t t, tetromino_rotation_t r);
+
+
+// extern const graphics_block_ROM_vertex_t* TETROMINO_MESHES[TETROMINO_TYPE_QUANTITY][4];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_I_MESHES[4][TETROMINO_TYPE_I_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_O_MESHES[4][TETROMINO_TYPE_O_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_T_MESHES[4][TETROMINO_TYPE_T_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_J_MESHES[4][TETROMINO_TYPE_J_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_L_MESHES[4][TETROMINO_TYPE_L_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_S_MESHES[4][TETROMINO_TYPE_S_MESH_SIZE];
+extern const graphics_block_ROM_vertex_t TETROMINO_TYPE_Z_MESHES[4][TETROMINO_TYPE_Z_MESH_SIZE];
+
+
+#endif

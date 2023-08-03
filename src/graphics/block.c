@@ -30,33 +30,36 @@ static GLfloat ViewMatrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
                                   [12]=-PLAYFIELD_WIDTH/2,
                                   [13]=-PLAYFIELD_HEIGHT/2,
                                   [14]=Z_INITIAL_OFFSET, };
-static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+// static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
 static GLfloat LightPosition[3] = { 0.0, 0.0, 100.0};
 
 /* TO-DO: Un-CameCase these uniform names */
 
 
-void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
-                                        float cx, float cy, float cz,
-                                        float theta, float phi)
-{ //{{{
-    identity(ModelMatrix);
-    translate(ModelMatrix, cx, cy, 0);
-    rotate(ModelMatrix, theta, 1, 0, 0);
-    rotate(ModelMatrix, phi,   0, 1, 0);
-    translate(ModelMatrix, -cx, -cy, 0);
-    translate(ModelMatrix, x, y, 0);
-    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
-/*}}}*/ }
+// void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
+//                                         float cx, float cy, float cz,
+//                                         float theta, float phi)
+// { //{{{
+//     identity(ModelMatrix);
+//     translate(ModelMatrix, cx, cy, 0);
+//     rotate(ModelMatrix, theta, 1, 0, 0);
+//     rotate(ModelMatrix, phi,   0, 1, 0);
+//     translate(ModelMatrix, -cx, -cy, 0);
+//     translate(ModelMatrix, x, y, 0);
+//     glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+// /*}}}*/ }
 
 
 
-void graphics_block_set_model_matrix_2D(float x, float y)
-{ //{{{
-    identity(ModelMatrix);
-    translate(ModelMatrix, x, y, 0);
-    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
-/*}}}*/ }
+// void graphics_block_set_model_matrix_2D(float x, float y)
+// { //{{{
+//     identity(ModelMatrix);
+//     translate(ModelMatrix, x, y, 0);
+//     glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+// /*}}}*/ }
+
+
+
 
       
 static void load_texture()
@@ -108,10 +111,12 @@ void graphics_block_init(void)
    GLuint FaceTypeNormals_location  = glGetUniformLocation(program, "FaceTypeNormals");
 
    glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
-   glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+   // glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
    glUniform3fv(LightPosition_location, 1, LightPosition);
 
    float ProjectionMatrix[16];
+   /* TO-DO: replace this runtime initialization with perspective() with literals
+      (print out the values) and set them here */
    perspective(ProjectionMatrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
    glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, ProjectionMatrix);
    
@@ -133,6 +138,11 @@ void graphics_block_end(void)
    glDeleteProgram(program);
    glDeleteTextures(/*texture_quantity=*/1, &texture_id);
 /*}}}*/ }
+
+
+void graphics_block_set_model_matrix(const float ModelMatrix[16]) {
+    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, (GLfloat*)ModelMatrix);
+}
 
 
 void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_size)
@@ -167,7 +177,7 @@ void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_siz
                          /* stride */    sizeof(graphics_block_vertex_t),
                          /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,block));
 
-   glDrawArrays(/*mode=*/GL_TRIANGLES, /*first=*/0, /*count=*/vertex_buffer_size);
+   glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
 
    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
@@ -191,36 +201,36 @@ void graphics_block_add_block_to_vertex_buffer(uint8_t x,
     ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_FRONT);
     ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_FRONT);
     ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_FRONT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_FRONT);
+    // ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_FRONT);
+    // ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_FRONT);
     ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_FRONT);
 
     ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=block_type, .face=FACE_LEFT);
     ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=0, .v=2, .block=block_type, .face=FACE_LEFT);
     ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=block_type, .face=FACE_LEFT);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_LEFT);
+    // ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=0, .v=1, .block=block_type, .face=FACE_LEFT);
+    // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_LEFT);
     ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_LEFT);
 
     ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_RIGHT);
     ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_RIGHT);
     ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=block_type, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_RIGHT);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=block_type, .face=FACE_RIGHT);
+    // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_RIGHT);
+    // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=3, .v=2, .block=block_type, .face=FACE_RIGHT);
     ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=3, .v=1, .block=block_type, .face=FACE_RIGHT);
 
     ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_TOP);
     ADD_VERTEX(.x=x,  .y=y1, .z=0, .u=1, .v=3, .block=block_type, .face=FACE_TOP);
     ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=block_type, .face=FACE_TOP);
-    ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_TOP);
-    ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=block_type, .face=FACE_TOP);
+    // ADD_VERTEX(.x=x,  .y=y1, .z=1, .u=1, .v=2, .block=block_type, .face=FACE_TOP);
+    // ADD_VERTEX(.x=x1, .y=y1, .z=0, .u=2, .v=3, .block=block_type, .face=FACE_TOP);
     ADD_VERTEX(.x=x1, .y=y1, .z=1, .u=2, .v=2, .block=block_type, .face=FACE_TOP);
 
     ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=block_type, .face=FACE_BOTTOM);
     ADD_VERTEX(.x=x,  .y=y,  .z=1, .u=1, .v=1, .block=block_type, .face=FACE_BOTTOM);
     ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=block_type, .face=FACE_BOTTOM);
-    ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_BOTTOM);
+    // ADD_VERTEX(.x=x,  .y=y,  .z=0, .u=1, .v=0, .block=block_type, .face=FACE_BOTTOM);
+    // ADD_VERTEX(.x=x1, .y=y,  .z=1, .u=2, .v=1, .block=block_type, .face=FACE_BOTTOM);
     ADD_VERTEX(.x=x1, .y=y,  .z=0, .u=2, .v=0, .block=block_type, .face=FACE_BOTTOM);
-    
+
 /*}}}*/}

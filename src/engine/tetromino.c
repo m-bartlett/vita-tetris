@@ -10,16 +10,6 @@ INDEX2TETROMINO_TYPE_T[TETROMINO_TYPE_QUANTITY-1] = { TETROMINO_TYPE_I,
                                                       TETROMINO_TYPE_S,
                                                       TETROMINO_TYPE_Z };
 
-static const char
-TETROMINO_TYPE_T2CHAR[TETROMINO_TYPE_QUANTITY] = { [TETROMINO_TYPE_NULL] = '\0',
-                                                   [TETROMINO_TYPE_I]    = 'I',
-                                                   [TETROMINO_TYPE_O]    = 'O',
-                                                   [TETROMINO_TYPE_T]    = 'T',
-                                                   [TETROMINO_TYPE_J]    = 'J',
-                                                   [TETROMINO_TYPE_L]    = 'L',
-                                                   [TETROMINO_TYPE_S]    = 'S',
-                                                   [TETROMINO_TYPE_Z]    = 'Z' };
-
 static const uint16_t
 TETROMINO_ROTATIONS[TETROMINO_TYPE_QUANTITY][4] = {
   
@@ -62,21 +52,9 @@ TETROMINO_ROTATIONS[TETROMINO_TYPE_QUANTITY][4] = {
 };
 
 
-const char tetromino_type_t2char(const tetromino_type_t t)
-{
-  return TETROMINO_TYPE_T2CHAR[t];
-}
-
-
 const tetromino_type_t index2tetromino_type_t(const uint8_t i)
 {
   return INDEX2TETROMINO_TYPE_T[0];
-}
-
-
-const char tetromino_get_type_char(const tetromino_t *t)
-{
-  return tetromino_type_t2char(t->type);
 }
 
 
