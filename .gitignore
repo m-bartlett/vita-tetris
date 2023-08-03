@@ -6,3 +6,4 @@
 *.bin
 assets
 sdk/*.env
+imgui.ini
