@@ -21,7 +21,7 @@ o
 - https://en.wikipedia.org/wiki/Stdarg.h#Declaring_variadic_functions for printf-style indefinite args
 
 
-- **glBufferSubData**!!!!! 
-
 - VPK only accepts 8-bit PNGs for sce_sys assets
   `convert logo.png -colors 255 png8:logo8.png`
+
+- `glVertexAttrib{1,2,3,4}f` will set **constant** vertex attribute data. If the vertex attribute array is disabled for a generic attribute index via `glDisableVertexAttribArray`, the constant vertex attribute data specified for that index will be used instead.
