@@ -147,43 +147,51 @@ void graphics_block_set_model_matrix(const float ModelMatrix[16]) {
 
 void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_size)
 { //{{{
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-   glUseProgram(program);
-   glBindTexture(GL_TEXTURE_2D, texture_id); // TO-DO: Implement single texture object
-   glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    glUseProgram(program);
+    glBindTexture(GL_TEXTURE_2D, texture_id); // TO-DO: Implement single texture object
+    glActiveTexture(GL_TEXTURE0);
 
-   glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-   glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION,
-                         /* dimension */ 3,
-                         /* type */      GL_UNSIGNED_BYTE,
-                         /* normalize */ GL_FALSE,
-                         /* stride */    sizeof(graphics_block_vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,x));
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION,
+                          /* dimension */ 3,
+                          /* type */      GL_UNSIGNED_BYTE,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(graphics_block_vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,x));
                                     // If GL_ARRAY_BUFFER is bound, *pointer* is an offset into it
 
-   glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-   glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
-                         /* dimension */ 2,
-                         /* type */      GL_UNSIGNED_BYTE,
-                         /* normalize */ GL_FALSE,
-                         /* stride */    sizeof(graphics_block_vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,u));
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
+                          /* dimension */ 2,
+                          /* type */      GL_UNSIGNED_BYTE,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(graphics_block_vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,u));
 
-   glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
-   glVertexAttribPointer(/* location(index) */  VERTEX_ATTRIBUTE_TYPE_LOCATION,
-                         /* dimension(size) */ 2,
-                         /* type */      GL_UNSIGNED_BYTE,
-                         /* normalize */ GL_FALSE,
-                         /* stride */    sizeof(graphics_block_vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,block));
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
+    glVertexAttribPointer(/* location(index) */  VERTEX_ATTRIBUTE_TYPE_LOCATION,
+                          /* dimension(size) */ 2,
+                          /* type */      GL_UNSIGNED_BYTE,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(graphics_block_vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,block));
 
-   glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
+    glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
 
-   glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-   glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-   glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
-   glUseProgram(0);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+/*}}}*/ }
+
+
+void graphics_block_draw_alpha(GLuint vertex_buffer_id, unsigned int vertex_buffer_size)
+{ //{{{
+    glEnable(GL_BLEND);
+    graphics_block_draw(vertex_buffer_id, vertex_buffer_size);
+    glDisable(GL_BLEND);
 /*}}}*/ }
 
 

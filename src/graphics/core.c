@@ -79,6 +79,7 @@ static inline void vgl_init() {
    glEnable(GL_CULL_FACE);
    glFrontFace(GL_CW); 
    glClearColor(0.1, 0.1, 0.1, 1.0);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
