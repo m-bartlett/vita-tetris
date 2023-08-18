@@ -23,7 +23,7 @@ void graphics_draw_queue_preview();
 void graphics_draw_score();
 void graphics_draw_held_tetromino();
 void graphics_draw_screen();
-void graphics_draw_active_tetromino();
+void graphics_draw_falling_tetromino();
 void graphics_draw_hard_drop_preview();
 void graphics_draw_game();
 void graphics_animate_line_kill(uint8_t Y);

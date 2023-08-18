@@ -59,8 +59,8 @@ static void engine_check_drop_lock();
 static void engine_update_gravity();
 
 
-static inline void engine_input_callback_right() {engine_move_active_tetromino(1,0);}
-static inline void engine_input_callback_left() {engine_move_active_tetromino(-1,0);}
+static inline void engine_input_callback_right() {engine_move_falling_tetromino(1,0);}
+static inline void engine_input_callback_left() {engine_move_falling_tetromino(-1,0);}
 static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
 
 
@@ -75,8 +75,8 @@ void engine_init()
 
     input_set_callback_triangle(engine_swap_held_tetromino_with_active);
     input_set_callback_circle(engine_swap_held_tetromino_with_active);
-    input_set_callback_cross(engine_rotate_active_tetromino_clockwise);
-    input_set_callback_square(engine_rotate_active_tetromino_counterclockwise);
+    input_set_callback_cross(engine_rotate_falling_tetromino_clockwise);
+    input_set_callback_square(engine_rotate_falling_tetromino_counterclockwise);
 
     input_set_callback_start(engine_input_callback_start);
 
@@ -148,7 +148,7 @@ static void engine_update_gravity()
 
     uint32_t elapsed_us = timer_get_elapsed_microseconds(&gravity_timer, &now_time);
     if (elapsed_us >= gravity_delay) {
-        if (!engine_move_active_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
+        if (!engine_move_falling_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
             drop_lock_timer = now_time;
         }
         gravity_timer = now_time;
@@ -185,7 +185,7 @@ void engine_end()
 /*}}}*/ }
 
 
-const tetromino_t* engine_get_active_tetromino()
+const tetromino_t* engine_get_falling_tetromino()
 { return &tetromino; }
 
 
@@ -217,7 +217,7 @@ const int8_t engine_update_hard_drop_y()
 /*}}}*/ }
 
 
-bool engine_move_active_tetromino(int8_t dx, uint8_t dy)
+bool engine_move_falling_tetromino(int8_t dx, uint8_t dy)
 { //{{{
     uint8_t _X=X+dx, _Y=Y+dy;
     if (playfield_validate_tetromino_placement(&tetromino, _X, _Y)) {
@@ -242,7 +242,7 @@ void engine_hard_drop_tetromino()
 
 void engine_soft_drop_tetromino()
 { //{{{
-    if (!engine_move_active_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
+    if (!engine_move_falling_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
         timer_set_current_time(&drop_lock_timer);
     }
     timer_set_current_time(&gravity_timer); // Reset gravity timer to prevent double-down
@@ -285,7 +285,7 @@ void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
 /*}}}*/}
 
 
-void engine_rotate_active_tetromino_clockwise()  // Rotation with wallkicks
+void engine_rotate_falling_tetromino_clockwise()  // Rotation with wallkicks
 { //{{{
     tetromino_rotate_clockwise(&tetromino);
 
@@ -325,7 +325,7 @@ void engine_rotate_active_tetromino_clockwise()  // Rotation with wallkicks
 /*}}}*/ }
 
 
-void engine_rotate_active_tetromino_counterclockwise()  // Rotation with wallkicks
+void engine_rotate_falling_tetromino_counterclockwise()  // Rotation with wallkicks
 { //{{{
     tetromino_rotate_counterclockwise(&tetromino);
 

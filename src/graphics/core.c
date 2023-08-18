@@ -121,9 +121,9 @@ void graphics_draw_held_tetromino()
 }
 
 
-void graphics_draw_active_tetromino()
+void graphics_draw_falling_tetromino()
 {
-   graphics_tetromino_draw(engine_get_active_tetromino());
+   graphics_tetromino_draw(engine_get_falling_tetromino());
    return;
 }
 
@@ -142,7 +142,7 @@ void graphics_draw_game()
    /* graphics_block_set_model_matrix */
    graphics_playfield_draw();
 
-   graphics_draw_active_tetromino();
+   graphics_draw_falling_tetromino();
 
    // enable alpha, set blend    
    graphics_draw_hard_drop_preview();
