@@ -22,7 +22,7 @@ void graphics_tetromino_init(void)
         for (int r = 0; r < TETROMINO_ROTATION_QUANTITY; ++r) {
             // tetromino_ROM_mesh = TETROMINO_MESHES[t][r];
             const graphics_block_ROM_vertex_t* 
-                tetromino_ROM_mesh = graphics_tetromino_get_mesh_ROM_vertex_buffer(t,r);
+                            tetromino_ROM_mesh = graphics_tetromino_get_mesh_ROM_vertex_buffer(t,r);
             for (unsigned int v = 0; v < tetromino_mesh_size; ++v) {
                 graphics_block_ROM_vertex_t V = tetromino_ROM_mesh[v];
                 vertex_buffer[v] = (graphics_block_vertex_t){.x=V.x, .y=V.y, .z=V.z,
