@@ -5,6 +5,7 @@
 #include "tetromino_meshes.h"
 #include "../engine/playfield.h"
 
+
 // 6 vertices for each face of 5 visible faces for each of 4 blocks per tetromino
 #define VERTEX_COUNT_MAX (6*5*4) 
 
@@ -51,16 +52,21 @@ void graphics_tetromino_end(void)
 /*}}}*/ }
 
 
-static float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
-void graphics_tetromino_set_model_orientation(const tetromino_t *t, uint8_t x, uint8_t y)
+// static float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+typedef struct { int8_t x, y; } position_t;
+
+static position_t falling_tetromino_position = {.x=0, .y=0};
+void graphics_tetromino_position_falling_tetromino(uint8_t x, uint8_t y)
 {
-    model_matrix[12] = x-3;
-    model_matrix[13] = PLAYFIELD_HEIGHT_1-y;
+    falling_tetromino_position.x = x-3;
+    falling_tetromino_position.y = PLAYFIELD_HEIGHT_1-y;
 }
 
-void graphics_tetromino_draw(const tetromino_t *t)
+void graphics_tetromino_draw_falling_tetromino(const tetromino_t *t)
 { //{{{
-    graphics_block_set_model_matrix(model_matrix);
+    graphics_block_set_model_matrix((float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
+                                               [12]=falling_tetromino_position.x,
+                                               [13]=falling_tetromino_position.y });
     graphics_block_draw(vertex_buffer_ids[t->type][t->rotation],
                         graphics_tetromino_get_mesh_size(t->type));
 /*}}}*/ }

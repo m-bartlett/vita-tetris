@@ -123,7 +123,7 @@ void graphics_draw_held_tetromino()
 
 void graphics_draw_falling_tetromino()
 {
-   graphics_tetromino_draw(engine_get_falling_tetromino());
+   graphics_tetromino_draw_falling_tetromino(engine_get_falling_tetromino());
    return;
 }
 
