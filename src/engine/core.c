@@ -39,7 +39,7 @@ static const int8_t WALLKICKS_I[4][4][2] = { {{-2, 0}, { 1, 0}, {-2, 1}, { 1,-2}
                                              {{ 2, 0}, {-1, 0}, { 2,-1}, {-1, 2}},
                                              {{ 1, 0}, {-2, 0}, { 1, 2}, {-2,-1}} };
 
-static tetromino_t tetromino; // TO-DO: rename this to active_tetromino
+static tetromino_t falling_tetromino;
 static uint8_t X, Y;
 static int8_t Y_hard_drop = -1;
 static tetromino_type_t held_tetromino = TETROMINO_TYPE_NULL;
@@ -132,7 +132,7 @@ static void engine_check_drop_lock()
         uint32_t elapsed_us = timer_get_elapsed_microseconds(&drop_lock_timer, &now_time);
         if (elapsed_us >= ENGINE_DROP_LOCK_DELAY_MICROSECONDS) {
             timer_unset(&drop_lock_timer);
-            if (!playfield_validate_tetromino_placement(&tetromino, X, Y+1)) {
+            if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y+1)) {
                 engine_place_tetromino_at_xy(X,Y);   // Lock the piece if it cannot proceed downward
                 graphics_draw_game();
             }
@@ -166,16 +166,16 @@ tetromino_type_t engine_pop_queued_tetromino()
 
 void engine_spawn_tetromino(tetromino_type_t type)
 { //{{{
-    tetromino = (tetromino_t){ type, 0 };
+    falling_tetromino = (tetromino_t){ type, 0 };
     X = PLAYFIELD_SPAWN_X;
     Y = PLAYFIELD_SPAWN_Y;
-    if (!playfield_validate_tetromino_placement(&tetromino, X, Y)) {
+    if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) {
         --Y;
-        if (!playfield_validate_tetromino_placement(&tetromino, X, Y)) {
+        if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) {
             engine_state = ENGINE_STATE_LOSE;  // Game is over if there's no room for a new piece.
         }
     }
-    graphics_tetromino_set_model_orientation(&tetromino, X, Y);
+    graphics_tetromino_position_falling_tetromino(X, Y);
 /*}}}*/}
 
 
@@ -186,7 +186,7 @@ void engine_end()
 
 
 const tetromino_t* engine_get_falling_tetromino()
-{ return &tetromino; }
+{ return &falling_tetromino; }
 
 
 const tetromino_type_t engine_get_held_tetromino()
@@ -203,7 +203,7 @@ const int8_t engine_update_hard_drop_y()
     int8_t _Y = Y;
     bool previous_valid = false;
     while(_Y < PLAYFIELD_HEIGHT1+2) {
-        bool current_valid = playfield_validate_tetromino_placement(&tetromino, X, _Y);
+        bool current_valid = playfield_validate_tetromino_placement(&falling_tetromino, X, _Y);
         if (previous_valid && (!current_valid)) {
             if(_Y > Y) {
                 Y_hard_drop = _Y-1;
@@ -214,16 +214,16 @@ const int8_t engine_update_hard_drop_y()
         ++_Y;
     }
     return Y_hard_drop;
-/*}}}*/ }
+/*falling_}}}*/ }
 
 
 bool engine_move_falling_tetromino(int8_t dx, uint8_t dy)
 { //{{{
     uint8_t _X=X+dx, _Y=Y+dy;
-    if (playfield_validate_tetromino_placement(&tetromino, _X, _Y)) {
+    if (playfield_validate_tetromino_placement(&falling_tetromino, _X, _Y)) {
         X=_X;
         Y=_Y;
-        graphics_tetromino_set_model_orientation(&tetromino, X, Y);
+        graphics_tetromino_position_falling_tetromino(X, Y);
         return true;
     }
     return false;
@@ -254,23 +254,23 @@ void engine_swap_held_tetromino_with_active(void)
 { //{{{
     if (!tetromino_swapped) {
         tetromino_swapped = true;
-        tetromino_type_t current = tetromino.type;
+        tetromino_type_t current = falling_tetromino.type;
         if (held_tetromino == TETROMINO_TYPE_NULL) {
             held_tetromino = engine_pop_queued_tetromino();
             graphics_draw_queue_preview();
         }
-        tetromino.type = held_tetromino;
-        tetromino.rotation = 0;
+        falling_tetromino.type = held_tetromino;
+        falling_tetromino.rotation = 0;
         held_tetromino = current;
         graphics_draw_held_tetromino();
-        engine_spawn_tetromino(tetromino.type);
+        engine_spawn_tetromino(falling_tetromino.type);
     }
 /*}}}*/ }
 
 
 void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
-{ //{{{
-    playfield_place_tetromino(&tetromino, x, y);
+{ //{{falling_{
+    playfield_place_tetromino(&falling_tetromino, x, y);
     graphics_playfield_update_mesh();
     uint8_t lines = playfield_clear_lines(graphics_animate_line_kill);
     uint8_t new_level = scoring_add_line_clears(lines);
@@ -282,31 +282,31 @@ void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
     }
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     tetromino_swapped = false;  // Reset swappability 
-/*}}}*/}
+/*falling_}}}*/}
 
 
 void engine_rotate_falling_tetromino_clockwise()  // Rotation with wallkicks
 { //{{{
-    tetromino_rotate_clockwise(&tetromino);
+    tetromino_rotate_clockwise(&falling_tetromino);
 
-    if (playfield_validate_tetromino_placement(&tetromino, X, Y)) goto valid_exit;
+    if (playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) goto valid_exit;
 
     uint8_t x, y;
     const int8_t (*wallkicks)[2];
 
-    switch(tetromino.type) {
+    switch(falling_tetromino.type) {
         case TETROMINO_TYPE_O:  // O-piece cannot rotate, nothing to be done
             goto valid_exit;
         case TETROMINO_TYPE_I:
-            wallkicks = WALLKICKS_I[tetromino.rotation]; break;
+            wallkicks = WALLKICKS_I[falling_tetromino.rotation]; break;
         default:
-            wallkicks = WALLKICKS_JLTSZ[tetromino.rotation]; break;
+            wallkicks = WALLKICKS_JLTSZ[falling_tetromino.rotation]; break;
     }
 
     for (uint8_t i = 0; i < 4; ++i) {
         x = X + wallkicks[i][0];
         y = Y + wallkicks[i][1];
-        if (playfield_validate_tetromino_placement(&tetromino, x, y)) {
+        if (playfield_validate_tetromino_placement(&falling_tetromino, x, y)) {
             X = x;
             Y = y;
             goto valid_exit;
@@ -315,38 +315,38 @@ void engine_rotate_falling_tetromino_clockwise()  // Rotation with wallkicks
     goto invalid_exit;
 
     valid_exit:
-        graphics_tetromino_set_model_orientation(&tetromino, X, Y);
+        graphics_tetromino_position_falling_tetromino(X, Y);
         timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
         return;
 
     invalid_exit:
-        tetromino_rotate_counterclockwise(&tetromino); // undo rotation if no kicks are valid
+        tetromino_rotate_counterclockwise(&falling_tetromino); // undo rotation if no kicks are valid
         return;
 /*}}}*/ }
 
 
 void engine_rotate_falling_tetromino_counterclockwise()  // Rotation with wallkicks
 { //{{{
-    tetromino_rotate_counterclockwise(&tetromino);
+    tetromino_rotate_counterclockwise(&falling_tetromino);
 
-    if (playfield_validate_tetromino_placement(&tetromino, X, Y)) goto valid_exit;
+    if (playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) goto valid_exit;
 
     uint8_t x, y;
     const int8_t (*wallkicks)[2];
 
-    switch(tetromino.type) {
+    switch(falling_tetromino.type) {
         case TETROMINO_TYPE_O:  // O-piece cannot rotate, nothing to be done
             goto valid_exit;
         case TETROMINO_TYPE_I:
-            wallkicks = WALLKICKS_I[tetromino.rotation]; break;
+            wallkicks = WALLKICKS_I[falling_tetromino.rotation]; break;
         default:
-            wallkicks = WALLKICKS_JLTSZ[tetromino.rotation]; break;
+            wallkicks = WALLKICKS_JLTSZ[falling_tetromino.rotation]; break;
     }
 
     for (uint8_t i = 0; i < 4; ++i) {
         x = X - wallkicks[i][0];
         y = Y - wallkicks[i][1];
-        if (playfield_validate_tetromino_placement(&tetromino, x, y)) {
+        if (playfield_validate_tetromino_placement(&falling_tetromino, x, y)) {
             X = x;
             Y = y;
             goto valid_exit;
@@ -355,12 +355,12 @@ void engine_rotate_falling_tetromino_counterclockwise()  // Rotation with wallki
     goto invalid_exit;
 
 valid_exit:
-    graphics_tetromino_set_model_orientation(&tetromino, X, Y);
+    graphics_tetromino_position_falling_tetromino(X, Y);
     timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
     return;
 
 invalid_exit:
-    tetromino_rotate_clockwise(&tetromino); // undo rotation if no kicks are valid
+    tetromino_rotate_clockwise(&falling_tetromino); // undo rotation if no kicks are valid
     return;
 /*}}}*/ }
 
