@@ -64,3 +64,6 @@ void graphics_tetromino_draw(const tetromino_t *t)
     graphics_block_draw(vertex_buffer_ids[t->type][t->rotation],
                         graphics_tetromino_get_mesh_size(t->type));
 /*}}}*/ }
+
+
+// void graphics_tetromino_active_orient(uint8_t x, uint8_t y)

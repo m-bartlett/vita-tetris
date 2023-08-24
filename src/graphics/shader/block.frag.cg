@@ -1,7 +1,8 @@
-uniform sampler2D gTexture : TEXUNIT0;
+uniform sampler2D u_block_texture : TEXUNIT0;
+uniform float3   u_block_type_colors[8];
 
 struct fragment_t {
-    float2 texcoord;
+    float2 texture_coordinate;
     unsigned char block_type;
     float diffusion;
 };
@@ -10,8 +11,8 @@ float4 main(
     fragment_t fragment : TEXCOORD0
 ) {
 
-    // float3 texel = tex2D(gTexture, fragment.texcoord);
-    float intensity = tex2D(gTexture, fragment.texcoord);
+    // float3 texel = tex2D(u_block_texture, fragment.texture_coordinate);
+    float intensity = tex2D(u_block_texture, fragment.texture_coordinate);
     // float intensity = (texel.x+texel.y+texel.z)/2.75;
     // float intensity = sqrt(texel.x*texel.x + texel.y*texel.y + texel.z*texel.z);
 

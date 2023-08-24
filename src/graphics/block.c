@@ -19,19 +19,19 @@
 static GLuint program;
 static GLuint texture_id;
 
-static GLuint ViewMatrix_location,
-              ModelMatrix_location,
-              ProjectionMatrix_location,
-              LightPosition_location;
+static GLuint u_view_matrix_location,
+              u_model_matrix_location,
+              u_projection_matrix_location,
+              u_light_position_location;
 
 #define Z_INITIAL_OFFSET -20
 // static GLfloat user_offset[3] = { 0.0, 0.0, Z_INITIAL_OFFSET };
-static GLfloat ViewMatrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
+static GLfloat u_view_matrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
                                   [12]=-PLAYFIELD_WIDTH/2,
                                   [13]=-PLAYFIELD_HEIGHT/2,
                                   [14]=Z_INITIAL_OFFSET, };
-// static GLfloat ModelMatrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
-static GLfloat LightPosition[3] = { 0.0, 0.0, 100.0};
+// static GLfloat u_model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+static GLfloat u_light_position[3] = { 0.0, 0.0, 100.0};
 
 /* TO-DO: Un-CameCase these uniform names */
 
@@ -40,22 +40,22 @@ static GLfloat LightPosition[3] = { 0.0, 0.0, 100.0};
 //                                         float cx, float cy, float cz,
 //                                         float theta, float phi)
 // { //{{{
-//     identity(ModelMatrix);
-//     translate(ModelMatrix, cx, cy, 0);
-//     rotate(ModelMatrix, theta, 1, 0, 0);
-//     rotate(ModelMatrix, phi,   0, 1, 0);
-//     translate(ModelMatrix, -cx, -cy, 0);
-//     translate(ModelMatrix, x, y, 0);
-//     glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+//     identity(u_model_matrix);
+//     translate(u_model_matrix, cx, cy, 0);
+//     rotate(u_model_matrix, theta, 1, 0, 0);
+//     rotate(u_model_matrix, phi,   0, 1, 0);
+//     translate(u_model_matrix, -cx, -cy, 0);
+//     translate(u_model_matrix, x, y, 0);
+//     glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
 // /*}}}*/ }
 
 
 
 // void graphics_block_set_model_matrix_2D(float x, float y)
 // { //{{{
-//     identity(ModelMatrix);
-//     translate(ModelMatrix, x, y, 0);
-//     glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
+//     identity(u_model_matrix);
+//     translate(u_model_matrix, x, y, 0);
+//     glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
 // /*}}}*/ }
 
 
@@ -96,40 +96,38 @@ void graphics_block_init(void)
    load_shader("app0:" VERTEX_SHADER_PATH, &program);
    load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
 
-   glBindAttribLocation(program, VERTEX_ATTRIBUTE_POSITION_LOCATION, "position");
-   glBindAttribLocation(program, VERTEX_ATTRIBUTE_TEXCOORD_LOCATION, "texcoord");
-   glBindAttribLocation(program, VERTEX_ATTRIBUTE_TYPE_LOCATION,     "type");
+    glBindAttribLocation(program, VERTEX_ATTRIBUTE_POSITION_LOCATION, "position");
+    glBindAttribLocation(program, VERTEX_ATTRIBUTE_TEXCOORD_LOCATION, "texture_coordinate");
+    glBindAttribLocation(program, VERTEX_ATTRIBUTE_TYPE_LOCATION,     "type");
 
    glLinkProgram(program);
    glUseProgram(program);
 
 
-   ViewMatrix_location              = glGetUniformLocation(program, "ViewMatrix");
-   ModelMatrix_location             = glGetUniformLocation(program, "ModelMatrix");
-   LightPosition_location           = glGetUniformLocation(program, "LightPosition");
-   GLuint ProjectionMatrix_location = glGetUniformLocation(program, "ProjectionMatrix");
-   GLuint FaceTypeNormals_location  = glGetUniformLocation(program, "FaceTypeNormals");
+    u_view_matrix_location              = glGetUniformLocation(program, "u_view_matrix");
+    u_model_matrix_location             = glGetUniformLocation(program, "u_model_matrix");
+    u_light_position_location           = glGetUniformLocation(program, "u_light_position");
+    GLuint u_projection_matrix_location = glGetUniformLocation(program, "u_projection_matrix");
+    GLuint u_face_type_normals_location = glGetUniformLocation(program, "u_face_type_normals");
+    GLuint u_block_type_colors_location = glGetUniformLocation(program, "u_block_type_colors");
 
-   glUniformMatrix4fv(ViewMatrix_location, 1, GL_FALSE, ViewMatrix);
-   // glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, ModelMatrix);
-   glUniform3fv(LightPosition_location, 1, LightPosition);
+    glUniformMatrix4fv(u_view_matrix_location, 1, GL_FALSE, u_view_matrix);
+   // glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
+    glUniform3fv(u_light_position_location, 1, u_light_position);
 
-   float ProjectionMatrix[16];
+    float u_projection_matrix[16];
    /* TO-DO: replace this runtime initialization with perspective() with literals
       (print out the values) and set them here */
-   perspective(ProjectionMatrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
-   glUniformMatrix4fv(ProjectionMatrix_location, 1, GL_FALSE, ProjectionMatrix);
+    perspective(u_projection_matrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
+    glUniformMatrix4fv(u_projection_matrix_location, 1, GL_FALSE, u_projection_matrix);
    
-   const float FaceTypeNormals[FACE_QUANTITY][3] = {[FACE_FRONT]  = {0,  0, 1},
-                                                    [FACE_TOP]    = {0,  1, 0},
-                                                    [FACE_RIGHT]  = {1,  0, 0},
-                                                    [FACE_BOTTOM] = {0, -1, 0},
-                                                    [FACE_LEFT]   = {-1, 0, 0}};
-   glUniform3fv(FaceTypeNormals_location, FACE_QUANTITY, (const float*)FaceTypeNormals);
-
-   load_texture();
-
-   glUniform1i(glGetUniformLocation(program, "gTexture"), 0);
+    const float u_face_type_normals[FACE_QUANTITY][3] = {[FACE_FRONT]  = {0,  0, 1},
+                                                        [FACE_TOP]    = {0,  1, 0},
+                                                        [FACE_RIGHT]  = {1,  0, 0},
+                                                        [FACE_BOTTOM] = {0, -1, 0},
+                                                        [FACE_LEFT]   = {-1, 0, 0}};
+    glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
+    glUniform1i(glGetUniformLocation(program, "u_block_texture"), 0);
 /*}}}*/ }
 
 
@@ -140,8 +138,8 @@ void graphics_block_end(void)
 /*}}}*/ }
 
 
-void graphics_block_set_model_matrix(const float ModelMatrix[16]) {
-    glUniformMatrix4fv(ModelMatrix_location, 1, GL_FALSE, (GLfloat*)ModelMatrix);
+void graphics_block_set_model_matrix(const float model_matrix[16]) {
+    glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, (GLfloat*)model_matrix);
 }
 
 

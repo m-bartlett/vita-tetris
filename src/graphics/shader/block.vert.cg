@@ -1,39 +1,38 @@
-uniform float4x4 ModelMatrix;
-uniform float4x4 NormalMatrix;
-uniform float4x4 ViewMatrix;
-uniform float4x4 ProjectionMatrix;
-uniform float3   LightPosition;
-uniform float3   FaceTypeNormals[5];
+uniform float4x4 u_model_matrix;
+uniform float4x4 u_view_matrix;
+uniform float4x4 u_projection_matrix;
+uniform float3   u_light_position;
+uniform float3   u_face_type_normals[5];
 
 struct fragment_t {
-    float2 texcoord;
+    float2 texture_coordinate;
     unsigned char block_type;
     float diffusion;
 };
 
 void main(
     float3 position,
-    float2 texcoord,
-    unsigned char2 type,
-    float4 out gl_Position : POSITION,
+    float2 texture_coordinate,
+    unsigned char2 type,  // TO-DO struct instead?
+    float4 out projected_position : POSITION,
     fragment_t out fragment : TEXCOORD0
 ) {
     unsigned char block_type = type[0];
     unsigned char face_type = type[1];
 
-    float4 mvPosition = mul(mul(float4(position, 1.0f), ModelMatrix), ViewMatrix);
+    float4 model_view_position = mul(mul(float4(position, 1.0f), u_model_matrix), u_view_matrix);
 
     // Undo translation for normal rotation calculation
-    ModelMatrix[3][0] = 0; ModelMatrix[3][1] = 0; ModelMatrix[3][2] = 0;
+    u_model_matrix[3][0] = 0; u_model_matrix[3][1] = 0; u_model_matrix[3][2] = 0;
 
-    float3 normal = normalize(FaceTypeNormals[face_type]);
-    normal = normalize(mul(float4(normal,1), ModelMatrix).xyz);
+    float3 face_normal = normalize(u_face_type_normals[face_type]);
+    face_normal = normalize(mul(float4(face_normal,1), u_model_matrix).xyz);
 
-    float3 light = normalize(LightPosition);
-    float diffusion = dot(normal, light);
+    float3 light = normalize(u_light_position); // TO-DO normalize on CPU when it's set
+    float face_diffusion = dot(face_normal, light);
 
-    texcoord /= 3.0;  // normalize block coordinates
+    texture_coordinate /= 3.0;  // normalize block coordinates
 
-    fragment = fragment_t(texcoord, block_type, diffusion);
-    gl_Position = mul(mvPosition, ProjectionMatrix);
+    fragment = fragment_t(texture_coordinate, block_type, face_diffusion);
+    projected_position = mul(model_view_position, u_projection_matrix);
 }
