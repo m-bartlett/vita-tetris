@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "block.h"
 #include "../engine/playfield.h"
+#include "../engine/tetromino.h"
 #include "../lib/linalg.h"
 #include "../lib/bmp.h"
 
@@ -92,16 +93,16 @@ static void load_texture()
 
 void graphics_block_init(void)
 { //{{{
-   program = glCreateProgram();
-   load_shader("app0:" VERTEX_SHADER_PATH, &program);
-   load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
+    program = glCreateProgram();
+    load_shader("app0:" VERTEX_SHADER_PATH, &program);
+    load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
 
     glBindAttribLocation(program, VERTEX_ATTRIBUTE_POSITION_LOCATION, "position");
     glBindAttribLocation(program, VERTEX_ATTRIBUTE_TEXCOORD_LOCATION, "texture_coordinate");
     glBindAttribLocation(program, VERTEX_ATTRIBUTE_TYPE_LOCATION,     "type");
 
-   glLinkProgram(program);
-   glUseProgram(program);
+    glLinkProgram(program);
+    glUseProgram(program);
 
 
     u_view_matrix_location              = glGetUniformLocation(program, "u_view_matrix");
@@ -127,6 +128,7 @@ void graphics_block_init(void)
                                                         [FACE_BOTTOM] = {0, -1, 0},
                                                         [FACE_LEFT]   = {-1, 0, 0}};
     glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
+
     const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
         [TETROMINO_TYPE_NULL] = {1.0, 1.0, 1.0},
         [TETROMINO_TYPE_I] = {0.2431, 0.8627, 1.0},
@@ -140,15 +142,17 @@ void graphics_block_init(void)
     glUniform3fv(u_block_type_colors_location,
                  TETROMINO_TYPE_QUANTITY,
                  (const float*)u_block_type_colors);
+
     load_texture();
+
     glUniform1i(glGetUniformLocation(program, "u_block_texture"), 0);
 /*}}}*/ }
 
 
 void graphics_block_end(void)
 { //{{{
-   glDeleteProgram(program);
-   glDeleteTextures(/*texture_quantity=*/1, &texture_id);
+    glDeleteProgram(program);
+    glDeleteTextures(/*texture_quantity=*/1, &texture_id);
 /*}}}*/ }
 
 
