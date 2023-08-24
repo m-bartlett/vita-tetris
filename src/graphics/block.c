@@ -127,6 +127,20 @@ void graphics_block_init(void)
                                                         [FACE_BOTTOM] = {0, -1, 0},
                                                         [FACE_LEFT]   = {-1, 0, 0}};
     glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
+    const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
+        [TETROMINO_TYPE_NULL] = {1.0, 1.0, 1.0},
+        [TETROMINO_TYPE_I] = {0.2431, 0.8627, 1.0},
+        [TETROMINO_TYPE_O] = {1.0,    0.7750, 0.1216},
+        [TETROMINO_TYPE_T] = {0.7920, 0.1726, 0.6745},
+        [TETROMINO_TYPE_J] = {0.1255, 0.3333, 0.8314},
+        [TETROMINO_TYPE_L] = {1.0,    0.406,  0.029},
+        [TETROMINO_TYPE_S] = {0.4980, 0.8275, 0.0824},
+        [TETROMINO_TYPE_Z] = {0.9333, 0.102,  0.2118},
+    };
+    glUniform3fv(u_block_type_colors_location,
+                 TETROMINO_TYPE_QUANTITY,
+                 (const float*)u_block_type_colors);
+    load_texture();
     glUniform1i(glGetUniformLocation(program, "u_block_texture"), 0);
 /*}}}*/ }
 
