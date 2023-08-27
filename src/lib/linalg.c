@@ -15,7 +15,8 @@ sincos (double a, double *s, double *c)
 #endif
 
 
-void multiply(GLfloat *m, const GLfloat *n) { //{{{
+void multiply(GLfloat *m, const GLfloat *n)
+{ //{{{
    GLfloat tmp[16];
    const GLfloat *row, *column;
    div_t d;
@@ -32,7 +33,8 @@ void multiply(GLfloat *m, const GLfloat *n) { //{{{
    memcpy(m, &tmp, sizeof tmp);
 /*}}}*/ }
 
-void rotate(GLfloat *m, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) { //{{{
+void rotate(GLfloat *m, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+{ //{{{
    double s, c;
 
    sincos(angle, &s, &c);
@@ -46,12 +48,14 @@ void rotate(GLfloat *m, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) { //{{{
    multiply(m, r);
 /*}}}*/ }
 
-void translate(GLfloat *m, GLfloat x, GLfloat y, GLfloat z) { //{{{
+void translate(GLfloat *m, GLfloat x, GLfloat y, GLfloat z)
+{ //{{{
    GLfloat t[16] = { 1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  x, y, z, 1 };
    multiply(m, t);
 /*}}}*/ }
 
-void identity(GLfloat *m) { //{{{
+void identity(GLfloat *m)
+{ //{{{
    GLfloat t[16] = {
       1.0, 0.0, 0.0, 0.0,
       0.0, 1.0, 0.0, 0.0,
@@ -62,7 +66,8 @@ void identity(GLfloat *m) { //{{{
    memcpy(m, t, sizeof(t));
 /*}}}*/ }
 
-void transpose(GLfloat *m) { //{{{
+void transpose(GLfloat *m)
+{ //{{{
    GLfloat t[16] = {
       m[0], m[4], m[8],  m[12],
       m[1], m[5], m[9],  m[13],
@@ -71,7 +76,8 @@ void transpose(GLfloat *m) { //{{{
    memcpy(m, t, sizeof(t));
 /*}}}*/ }
 
-void invert(GLfloat *m) { //{{{
+void invert(GLfloat *m)
+{ //{{{
    GLfloat t[16];
    identity(t);
    t[12] = -m[12]; t[13] = -m[13]; t[14] = -m[14];
@@ -84,7 +90,8 @@ void perspective(GLfloat *m,
                  GLfloat fovy,
                  GLfloat aspect,
                  GLfloat zNear,
-                 GLfloat zFar) { //{{{
+                 GLfloat zFar)
+{ //{{{
    GLfloat tmp[16];
    identity(tmp);
 
