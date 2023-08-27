@@ -1,131 +1,142 @@
 #!/usr/bin/env python3
 
+
+"""
+echo -e \
+  "$(sed -n '1,59p' ../src/graphics/tetromino_meshes.c)"\
+  "\n\n\n"\
+  "$(./generate_static_tetromino_block_vertices.py)" \
+  &> ../src/graphics/tetromino_meshes.c
+"""
+
+
+
 TETROMINO_ROTATIONS = {
   "TETROMINO_TYPE_I" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '1111'
-                                   '0000'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0010'
-                                   '0010'
-                                   '0010'
-                                   '0010',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '1111'
-                                   '0000',2),
-    "TETROMINO_ROTATION_270" : int('0100'
-                                   '0100'
-                                   '0100'
-                                   '0100',2),
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '1111'
+                                '0000'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0010'
+                                '0010'
+                                '0010'
+                                '0010'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '1111'
+                                '0000'),
+    "TETROMINO_ROTATION_270" : ('0100'
+                                '0100'
+                                '0100'
+                                '0100'),
   },
   "TETROMINO_TYPE_O" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '0110'
-                                   '0110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0110'
-                                   '0110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0110'
-                                   '0110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '0110'
-                                   '0110'
-                                   '0000',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '0110'
+                                '0110'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0110'
+                                '0110'
+                                '0000'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0110'
+                                '0110'
+                                '0000'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '0110'
+                                '0110'
+                                '0000')
   },
   "TETROMINO_TYPE_T" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '0100'
-                                   '1110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0100'
-                                   '0110'
-                                   '0100',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '1110'
-                                   '0100',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '0100'
-                                   '1100'
-                                   '0100',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '0100'
+                                '1110'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0100'
+                                '0110'
+                                '0100'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '1110'
+                                '0100'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '0100'
+                                '1100'
+                                '0100')
   },
   "TETROMINO_TYPE_J" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '1000'
-                                   '1110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0110'
-                                   '0100'
-                                   '0100',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '1110'
-                                   '0010',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '0100'
-                                   '0100'
-                                   '1100',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '1000'
+                                '1110'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0110'
+                                '0100'
+                                '0100'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '1110'
+                                '0010'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '0100'
+                                '0100'
+                                '1100')
   },
   "TETROMINO_TYPE_L" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '0010'
-                                   '1110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0100'
-                                   '0100'
-                                   '0110',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '1110'
-                                   '1000',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '1100'
-                                   '0100'
-                                   '0100',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '0010'
+                                '1110'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0100'
+                                '0100'
+                                '0110'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '1110'
+                                '1000'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '1100'
+                                '0100'
+                                '0100')
   },
   "TETROMINO_TYPE_S" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '0110'
-                                   '1100'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0100'
-                                   '0110'
-                                   '0010',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '0110'
-                                   '1100',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '1000'
-                                   '1100'
-                                   '0100',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '0110'
+                                '1100'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0100'
+                                '0110'
+                                '0010'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '0110'
+                                '1100'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '1000'
+                                '1100'
+                                '0100')
   },
   "TETROMINO_TYPE_Z" : {
-    "TETROMINO_ROTATION_0"   : int('0000'
-                                   '1100'
-                                   '0110'
-                                   '0000',2),
-    "TETROMINO_ROTATION_90"  : int('0000'
-                                   '0010'
-                                   '0110'
-                                   '0100',2),
-    "TETROMINO_ROTATION_180" : int('0000'
-                                   '0000'
-                                   '1100'
-                                   '0110',2),
-    "TETROMINO_ROTATION_270" : int('0000'
-                                   '0100'
-                                   '1100'
-                                   '1000',2)
+    "TETROMINO_ROTATION_0"   : ('0000'
+                                '1100'
+                                '0110'
+                                '0000'),
+    "TETROMINO_ROTATION_90"  : ('0000'
+                                '0010'
+                                '0110'
+                                '0100'),
+    "TETROMINO_ROTATION_180" : ('0000'
+                                '0000'
+                                '1100'
+                                '0110'),
+    "TETROMINO_ROTATION_270" : ('0000'
+                                '0100'
+                                '1100'
+                                '1000')
   },
 }
 
@@ -229,7 +240,7 @@ def scan_top_to_bottom(grid, block):
 
   for x in range(4):
     previous_occupied = False
-    for y in range(4):
+    for y in reversed(range(4)):
       maskbit = get_maskbit(x, y);
       current_occupied = maskbit&grid
 
@@ -237,10 +248,10 @@ def scan_top_to_bottom(grid, block):
         pass
 
       elif not previous_occupied and current_occupied:
-        lines += add_bottom_face(x, y, block)
+        lines += add_top_face(x, y, block)
 
       elif previous_occupied and not current_occupied:
-        lines += add_top_face(x, y-1, block)
+        lines += add_bottom_face(x, y+1, block)
 
       elif not previous_occupied and not current_occupied:
         pass
@@ -259,7 +270,7 @@ def grid_to_face_vertices(grid, block):
 
 TETROMINO_MESHES = {
   tetromino_type: {
-    rotation: grid_to_face_vertices(grid, tetromino_type)
+    rotation: grid_to_face_vertices(int(grid,2), tetromino_type)
     for rotation, grid in rotations.items()
   }
   for tetromino_type, rotations in TETROMINO_ROTATIONS.items()
