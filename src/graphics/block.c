@@ -26,43 +26,12 @@ static GLuint u_view_matrix_location,
               u_light_position_location;
 
 #define Z_INITIAL_OFFSET -20
-// static GLfloat user_offset[3] = { 0.0, 0.0, Z_INITIAL_OFFSET };
 static GLfloat u_view_matrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
-                                  [12]=-PLAYFIELD_WIDTH/2,
-                                  [13]=-PLAYFIELD_HEIGHT/2,
-                                  [14]=Z_INITIAL_OFFSET, };
-// static GLfloat u_model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+                                     [12]=-PLAYFIELD_WIDTH/2,
+                                     [13]=-PLAYFIELD_HEIGHT/2,
+                                     [14]=Z_INITIAL_OFFSET, };
 static GLfloat u_light_position[3] = { 0.0, 0.0, 100.0};
 
-/* TO-DO: Un-CameCase these uniform names */
-
-
-// void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
-//                                         float cx, float cy, float cz,
-//                                         float theta, float phi)
-// { //{{{
-//     identity(u_model_matrix);
-//     translate(u_model_matrix, cx, cy, 0);
-//     rotate(u_model_matrix, theta, 1, 0, 0);
-//     rotate(u_model_matrix, phi,   0, 1, 0);
-//     translate(u_model_matrix, -cx, -cy, 0);
-//     translate(u_model_matrix, x, y, 0);
-//     glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
-// /*}}}*/ }
-
-
-
-// void graphics_block_set_model_matrix_2D(float x, float y)
-// { //{{{
-//     identity(u_model_matrix);
-//     translate(u_model_matrix, x, y, 0);
-//     glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
-// /*}}}*/ }
-
-
-
-
-      
 static void load_texture()
 { //{{{
     // Block texture is grayscale that's dynamically colored based on block type & user preferences
@@ -200,14 +169,6 @@ void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_siz
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-/*}}}*/ }
-
-
-void graphics_block_draw_alpha(GLuint vertex_buffer_id, unsigned int vertex_buffer_size)
-{ //{{{
-    glEnable(GL_BLEND);
-    graphics_block_draw(vertex_buffer_id, vertex_buffer_size);
-    glDisable(GL_BLEND);
 /*}}}*/ }
 
 

@@ -63,6 +63,11 @@ static inline void engine_input_callback_right() {engine_move_falling_tetromino(
 static inline void engine_input_callback_left() {engine_move_falling_tetromino(-1,0);}
 static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
 
+static inline void engine_update_mesh_positions() {
+        graphics_tetromino_position_falling_tetromino(X, Y);
+        graphics_tetromino_position_hard_drop_phantom(X, engine_update_hard_drop_y());
+
+}
 
 void engine_init()
 { //{{{
@@ -175,7 +180,7 @@ void engine_spawn_tetromino(tetromino_type_t type)
             engine_state = ENGINE_STATE_LOSE;  // Game is over if there's no room for a new piece.
         }
     }
-    graphics_tetromino_position_falling_tetromino(X, Y);
+    engine_update_mesh_positions();
 /*}}}*/}
 
 
@@ -223,7 +228,7 @@ bool engine_move_falling_tetromino(int8_t dx, uint8_t dy)
     if (playfield_validate_tetromino_placement(&falling_tetromino, _X, _Y)) {
         X=_X;
         Y=_Y;
-        graphics_tetromino_position_falling_tetromino(X, Y);
+        engine_update_mesh_positions();
         return true;
     }
     return false;
@@ -315,7 +320,7 @@ void engine_rotate_falling_tetromino_clockwise()  // Rotation with wallkicks
     goto invalid_exit;
 
     valid_exit:
-        graphics_tetromino_position_falling_tetromino(X, Y);
+        engine_update_mesh_positions();
         timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
         return;
 
@@ -355,7 +360,7 @@ void engine_rotate_falling_tetromino_counterclockwise()  // Rotation with wallki
     goto invalid_exit;
 
 valid_exit:
-    graphics_tetromino_position_falling_tetromino(X, Y);
+    engine_update_mesh_positions();
     timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
     return;
 

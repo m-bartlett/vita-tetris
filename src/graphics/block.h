@@ -35,7 +35,6 @@ void graphics_block_set_model_matrix_3D(float x,  float y,  float z,
                                         float theta, float phi);
 void graphics_block_set_model_matrix(const float model_matrix[16]);
 void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_size);
-void graphics_block_draw_alpha(GLuint vertex_buffer_id, unsigned int vertex_buffer_size);
 void graphics_block_add_block_to_vertex_buffer(uint8_t x,
                                                uint8_t y,
                                                uint8_t block_type,

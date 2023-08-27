@@ -52,7 +52,8 @@ void graphics_tetromino_end(void)
 /*}}}*/ }
 
 
-// static float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+// Controls for specific tetromino rendering
+
 typedef struct { int8_t x, y; } position_t;
 
 static position_t falling_tetromino_position = {.x=0, .y=0};
@@ -72,4 +73,20 @@ void graphics_tetromino_draw_falling_tetromino(const tetromino_t *t)
 /*}}}*/ }
 
 
-// void graphics_tetromino_active_orient(uint8_t x, uint8_t y)
+static position_t hard_drop_phantom_position = {.x=0, .y=0};
+void graphics_tetromino_position_hard_drop_phantom(uint8_t x, uint8_t y)
+{
+    hard_drop_phantom_position.x = x-3;
+    hard_drop_phantom_position.y = PLAYFIELD_HEIGHT_1-y;
+}
+
+void graphics_tetromino_draw_hard_drop_phantom(const tetromino_t *t)
+{ //{{{
+    graphics_block_set_model_matrix((float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
+                                               [12]=hard_drop_phantom_position.x,
+                                               [13]=hard_drop_phantom_position.y });
+    glEnable(GL_BLEND);
+    graphics_block_draw(vertex_buffer_ids[t->type][t->rotation],
+                        graphics_tetromino_get_mesh_size(t->type));
+    glDisable(GL_BLEND);
+/*}}}*/ }

@@ -21,5 +21,5 @@ float4 main(
     float3 color = u_block_type_colors[fragment.block_type];
 
     color *= intensity * max(fragment.diffusion*fragment.diffusion*1.5, 0.5);
-    return float4(color, 0.25);
+    return float4(color, .25);
 }
