@@ -5,6 +5,8 @@
 #include "../lib/linalg.h"
 #include "../lib/bmp.h"
 
+#include <stdio.h>  //DELETE DELETE DELETE DELETE DELETE DELETE DELETE DELETE DELETE 
+
 #define TEXTURE_PATH "texture/block.bmp"
 #define VERTEX_SHADER_PATH "shader/block.vert.cg"
 #define FRAGMENT_SHADER_PATH "shader/block.frag.cg"
@@ -82,20 +84,21 @@ void graphics_block_init(void)
     GLuint u_block_type_colors_location = glGetUniformLocation(program, "u_block_type_colors");
 
     glUniformMatrix4fv(u_view_matrix_location, 1, GL_FALSE, u_view_matrix);
-   // glUniformMatrix4fv(u_model_matrix_location, 1, GL_FALSE, u_model_matrix);
     glUniform3fv(u_light_position_location, 1, u_light_position);
-
-    float u_projection_matrix[16];
-   /* TO-DO: replace this runtime initialization with perspective() with literals
-      (print out the values) and set them here */
-    perspective(u_projection_matrix, 60, ((float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT), 1, 1024);
-    glUniformMatrix4fv(u_projection_matrix_location, 1, GL_FALSE, u_projection_matrix);
+    glUniformMatrix4fv(/*location=*/u_projection_matrix_location,
+                       /*count=*/1,
+                       /*tranpose=*/GL_FALSE,
+                       /*value=*/(float[])\
+                                 perspective_matrix(60,
+                                                    DISPLAY_WIDTH/(float)DISPLAY_HEIGHT,
+                                                    1,
+                                                    1024));
    
     const float u_face_type_normals[FACE_QUANTITY][3] = {[FACE_FRONT]  = {0,  0, 1},
-                                                        [FACE_TOP]    = {0,  1, 0},
-                                                        [FACE_RIGHT]  = {1,  0, 0},
-                                                        [FACE_BOTTOM] = {0, -1, 0},
-                                                        [FACE_LEFT]   = {-1, 0, 0}};
+                                                         [FACE_TOP]    = {0,  1, 0},
+                                                         [FACE_RIGHT]  = {1,  0, 0},
+                                                         [FACE_BOTTOM] = {0, -1, 0},
+                                                         [FACE_LEFT]   = {-1, 0, 0}};
     glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
 
     const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
