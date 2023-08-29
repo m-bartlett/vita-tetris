@@ -117,14 +117,13 @@ void graphics_draw_score()
 
 void graphics_draw_held_tetromino()
 {
-   return;
+   graphics_tetromino_draw_held_tetromino(engine_get_held_tetromino());
 }
 
 
 void graphics_draw_falling_tetromino()
 {
    graphics_tetromino_draw_falling_tetromino(engine_get_falling_tetromino());
-   return;
 }
 
 
@@ -132,23 +131,18 @@ void graphics_draw_hard_drop_phantom()
 {
    // engine_update_hard_drop_y();
    graphics_tetromino_draw_hard_drop_phantom(engine_get_falling_tetromino());
-   return;
 }
 
 
 void graphics_draw_game()
 {  
    graphics_background_draw(); // instead of using glClear
-
-   /* graphics_block_set_model_matrix */
    graphics_playfield_draw();
-
+   graphics_draw_held_tetromino();
    graphics_draw_falling_tetromino();
-
-   // enable alpha, set blend    
    graphics_draw_hard_drop_phantom();
 
-   graphics_draw_held_tetromino();
+
 
    /*   queue preview
     - queue_preview_to_vertices() every piece update
@@ -156,7 +150,6 @@ void graphics_draw_game()
     - set translation uniforms
     - draw_queue_preview*/
 
-   graphics_draw_held_tetromino();
 
    graphics_draw_score();
 

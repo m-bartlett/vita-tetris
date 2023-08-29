@@ -17,6 +17,19 @@ static GLuint vertex_buffer_ids[TETROMINO_TYPE_QUANTITY][TETROMINO_ROTATION_QUAN
 void graphics_tetromino_init(void)
 { //{{{
     graphics_block_vertex_t vertex_buffer[TETROMINO_MEDIAN_MESH_SIZE];
+
+    // Generate empty meshes for null tetromino type
+    for (int r = 0; r < TETROMINO_ROTATION_QUANTITY; ++r) {
+        glGenBuffers(1, &(vertex_buffer_ids[0][r]));
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ids[0][r]);
+        glBufferData(/* type */  GL_ARRAY_BUFFER,
+                     /* size */  0,
+                     /* data */  vertex_buffer,
+                     /* usage */ GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    // Read const ROM mesh vertices for actual tetromino species
     for (uint8_t t = 1; t < TETROMINO_TYPE_QUANTITY; ++t) {
         size_t tetromino_mesh_size = graphics_tetromino_get_mesh_size(t);
 
@@ -82,11 +95,20 @@ void graphics_tetromino_position_hard_drop_phantom(uint8_t x, uint8_t y)
 
 void graphics_tetromino_draw_hard_drop_phantom(const tetromino_t *t)
 { //{{{
-    graphics_block_set_model_matrix((float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
-                                               [12]=hard_drop_phantom_position.x,
-                                               [13]=hard_drop_phantom_position.y });
-    glEnable(GL_BLEND);
+    graphics_block_set_model_matrix((const float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
+                                                     [12]=hard_drop_phantom_position.x,
+                                                     [13]=hard_drop_phantom_position.y });
+    glEnable(GL_BLEND); // The fragment shader returns fractional alpha, let's actually use it.
     graphics_block_draw(vertex_buffer_ids[t->type][t->rotation],
                         graphics_tetromino_get_mesh_size(t->type));
     glDisable(GL_BLEND);
+/*}}}*/ }
+
+
+void graphics_tetromino_draw_held_tetromino(const tetromino_type_t t)
+{ //{{{
+    graphics_block_set_model_matrix((const float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
+                                                     [12]=-PLAYFIELD_WIDTH/2,
+                                                     [13]=PLAYFIELD_HEIGHT-6 });
+    graphics_block_draw(vertex_buffer_ids[t][0], graphics_tetromino_get_mesh_size(t));
 /*}}}*/ }

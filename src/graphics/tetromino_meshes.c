@@ -4,17 +4,13 @@
 
 // TO-DO: Consider substituting u-v with corner enum
 
-/* TO-DO: Use intermediate struct that does not store the tetromino type, add that
-             dynamically when the mesh is loaded to its respective vertex buffer.*/
-
 const unsigned int graphics_tetromino_get_mesh_size(tetromino_type_t type)
 {
-    unsigned int vertex_quantity;
     switch(type) {
-        case TETROMINO_TYPE_O: vertex_quantity=TETROMINO_TYPE_O_MESH_SIZE; break;
-        default:               vertex_quantity=TETROMINO_MEDIAN_MESH_SIZE; break;
+        case TETROMINO_TYPE_NULL: return 0;
+        case TETROMINO_TYPE_O:    return TETROMINO_TYPE_O_MESH_SIZE;
+        default:                  return TETROMINO_MEDIAN_MESH_SIZE;
     }
-    return vertex_quantity;
 }
 
 
