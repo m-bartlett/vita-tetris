@@ -84,33 +84,3 @@ void invert(GLfloat *m)
    transpose(m);
    multiply(m, t);
 /*}}}*/ }
-
-void perspective(GLfloat *m,
-                 GLfloat fovy,
-                 GLfloat aspect,
-                 GLfloat zNear,
-                 GLfloat zFar)
-{ //{{{
-   GLfloat tmp[16];
-   identity(tmp);
-
-   double sine, cosine, cotangent, deltaZ;
-   GLfloat radians = fovy / 2 * M_PI / 180;
-
-   deltaZ = zFar - zNear;
-   sincos(radians, &sine, &cosine);
-
-   if ((deltaZ == 0) || (sine == 0) || (aspect == 0))
-      return;
-
-   cotangent = cosine / sine;
-
-   tmp[0] = cotangent / aspect;
-   tmp[5] = cotangent;
-   tmp[10] = -(zFar + zNear) / deltaZ;
-   tmp[11] = -1;
-   tmp[14] = -2 * zNear * zFar / deltaZ;
-   tmp[15] = 0;
-
-   memcpy(m, tmp, sizeof(tmp));
-/*}}}*/ }
