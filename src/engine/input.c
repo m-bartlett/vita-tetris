@@ -62,7 +62,7 @@ void input_read_and_run_callbacks()
    check_button_single_fire(select)
    check_button_single_fire(start)
 
-   // analog_callbacks[0](input.lx, input.ly);
+   // analog_callbacks[0](input.lx, input.ly); // TO-DO THESE ARE BROKEN
    // analog_callbacks[1](input.rx, input.ry);
 
    previous_input = input;

@@ -23,6 +23,7 @@ typedef struct { const uint8_t x; const uint8_t y; } point_t;
 
 const tetromino_t* engine_get_falling_tetromino();
 const tetromino_type_t engine_get_held_tetromino();
+const tetromino_type_t* engine_get_queued_tetrominos();
 const point_t engine_get_active_xy();
 const int8_t engine_update_hard_drop_y();
 

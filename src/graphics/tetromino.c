@@ -7,6 +7,7 @@
 
 
 // 6 vertices for each face of 5 visible faces for each of 4 blocks per tetromino
+#define PREVIEW_SCALE 0.75
 #define VERTEX_COUNT_MAX (6*5*4) 
 
 // static GLuint vertex_buffer_id;
@@ -67,9 +68,7 @@ void graphics_tetromino_end(void)
 
 // Controls for specific tetromino rendering
 
-typedef struct { int8_t x, y; } position_t;
-
-static position_t falling_tetromino_position = {.x=0, .y=0};
+static struct { int8_t x, y; } falling_tetromino_position = {.x=0, .y=0};
 void graphics_tetromino_position_falling_tetromino(uint8_t x, uint8_t y)
 {
     falling_tetromino_position.x = x-3;
@@ -86,18 +85,17 @@ void graphics_tetromino_draw_falling_tetromino(const tetromino_t *t)
 /*}}}*/ }
 
 
-static position_t hard_drop_phantom_position = {.x=0, .y=0};
-void graphics_tetromino_position_hard_drop_phantom(uint8_t x, uint8_t y)
+static int8_t hard_drop_phantom_y = 0;
+void graphics_tetromino_position_hard_drop_phantom(int8_t y)
 {
-    hard_drop_phantom_position.x = x-3;
-    hard_drop_phantom_position.y = PLAYFIELD_HEIGHT_1-y;
+    hard_drop_phantom_y = PLAYFIELD_HEIGHT_1-y;
 }
 
 void graphics_tetromino_draw_hard_drop_phantom(const tetromino_t *t)
 { //{{{
     graphics_block_set_model_matrix((const float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
-                                                     [12]=hard_drop_phantom_position.x,
-                                                     [13]=hard_drop_phantom_position.y });
+                                                     [12]=falling_tetromino_position.x,
+                                                     [13]=hard_drop_phantom_y });
     glEnable(GL_BLEND); // The fragment shader returns fractional alpha, let's actually use it.
     graphics_block_draw(vertex_buffer_ids[t->type][t->rotation],
                         graphics_tetromino_get_mesh_size(t->type));
@@ -107,8 +105,25 @@ void graphics_tetromino_draw_hard_drop_phantom(const tetromino_t *t)
 
 void graphics_tetromino_draw_held_tetromino(const tetromino_type_t t)
 { //{{{
-    graphics_block_set_model_matrix((const float[]){ [0]=1, [5]=1, [10]=1, [15]=1,
+    graphics_block_set_model_matrix((const float[]){ [0]=PREVIEW_SCALE, [5]=PREVIEW_SCALE,
+                                                     [10]=1, [15]=1,
                                                      [12]=-PLAYFIELD_WIDTH/2,
                                                      [13]=PLAYFIELD_HEIGHT-6 });
     graphics_block_draw(vertex_buffer_ids[t][0], graphics_tetromino_get_mesh_size(t));
+/*}}}*/ }
+
+
+void graphics_tetromino_draw_queued_tetrominos(const tetromino_type_t* queue)
+{ //{{{
+    
+    for (int i = 0; i < TETROMINO_QUEUE_PREVIEW_QUANTITY; ++i) {
+        const tetromino_type_t t = queue[i]+1;
+        graphics_block_set_model_matrix((const float[]){
+            [0]=PREVIEW_SCALE, [5]=PREVIEW_SCALE,
+            [10]=1, [15]=1,
+            [12]=PLAYFIELD_WIDTH+2,
+            [13]=(PLAYFIELD_HEIGHT*3/4)-((i)*(3*PREVIEW_SCALE))
+        });
+        graphics_block_draw(vertex_buffer_ids[t][0], graphics_tetromino_get_mesh_size(t));
+    }
 /*}}}*/ }

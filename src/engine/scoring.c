@@ -1,5 +1,4 @@
 #include "scoring.h"
-#include "../graphics/core.h"
 
 static uint8_t cleared_lines = 0;
 static uint8_t total_cleared_lines = 0;
@@ -26,7 +25,6 @@ const uint8_t scoring_add_line_clears(uint8_t lines)
             cleared_lines %= SCORING_LINES_PER_LEVEL;
             if (level < SCORING_MAX_LEVEL ) return ++level;
         }
-        graphics_draw_score();
     }
     return 0;
 }
@@ -35,12 +33,10 @@ const uint8_t scoring_add_line_clears(uint8_t lines)
 void scoring_add_soft_drop()
 {
     score += SCORING_POINTS_PER_CELL_SOFT_DROP;
-    graphics_draw_score();
 }
 
 
 void scoring_add_hard_drop(uint8_t drop_height)
 {
     score += SCORING_POINTS_PER_CELL_HARD_DROP * drop_height;
-    graphics_draw_score();
 }

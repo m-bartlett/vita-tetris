@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define TETROMINO_QUEUE_PREVIEW_QUANTITY 6
+
+
 enum tetromino_type_enum { TETROMINO_TYPE_NULL = 0,
                            TETROMINO_TYPE_I    = 1,
                            TETROMINO_TYPE_O    = 2,

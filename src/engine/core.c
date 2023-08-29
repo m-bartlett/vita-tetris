@@ -43,6 +43,7 @@ static tetromino_t falling_tetromino;
 static uint8_t X, Y;
 static int8_t Y_hard_drop = -1;
 static tetromino_type_t held_tetromino = TETROMINO_TYPE_NULL;
+static tetromino_type_t queued_tetrominos[TETROMINO_QUEUE_PREVIEW_QUANTITY];
 static bool tetromino_swapped = false;
 static engine_state_t engine_state = ENGINE_STATE_NULL;
 
@@ -62,7 +63,7 @@ static inline void engine_input_callback_right() {engine_move_falling_tetromino(
 static inline void engine_input_callback_left() {engine_move_falling_tetromino(-1,0);}
 static inline void engine_update_mesh_positions() {
     graphics_tetromino_position_falling_tetromino(X, Y);
-    graphics_tetromino_position_hard_drop_phantom(X, engine_update_hard_drop_y());
+    graphics_tetromino_position_hard_drop_phantom(engine_update_hard_drop_y());
 }
 
 
@@ -161,7 +162,7 @@ static void engine_update_gravity()
 tetromino_type_t engine_pop_queued_tetromino()
 { //{{{
     const tetromino_type_t type = (tetromino_type_t)(bag_of_7_pop_sample()+1);
-    graphics_draw_queue_preview();
+    bag_of_7_write_queue(queued_tetrominos, TETROMINO_QUEUE_PREVIEW_QUANTITY);
     return type;
 /*}}}*/}
 
@@ -193,6 +194,10 @@ const tetromino_t* engine_get_falling_tetromino()
 
 const tetromino_type_t engine_get_held_tetromino()
 { return held_tetromino; }
+
+
+const tetromino_type_t* engine_get_queued_tetrominos()
+{ return queued_tetrominos; }
 
 
 const int8_t engine_update_hard_drop_y()
@@ -255,12 +260,10 @@ void engine_swap_held_tetromino_with_active(void)
         tetromino_type_t current = falling_tetromino.type;
         if (held_tetromino == TETROMINO_TYPE_NULL) {
             held_tetromino = engine_pop_queued_tetromino();
-            graphics_draw_queue_preview();
         }
         falling_tetromino.type = held_tetromino;
         falling_tetromino.rotation = 0;
         held_tetromino = current;
-        graphics_draw_held_tetromino();
         engine_spawn_tetromino(falling_tetromino.type);
     }
 /*}}}*/ }

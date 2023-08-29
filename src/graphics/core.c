@@ -12,9 +12,6 @@
 
 #define FRAME_DELAY_us 15000
 
-#define TETROMINO_QUEUE_PREVIEW_QUANTITY 6
-#define TETROMINO_QUEUE_PREVIEW_HEIGHT (TETROMINO_QUEUE_PREVIEW_QUANTITY*3)
-
 /*
 static const uint8_t GAME_OVER_PLAYFIELD[] = {
     TETROMINO_TYPE_Z,TETROMINO_TYPE_Z,TETROMINO_TYPE_Z,0,0,0,0,0,0,0,
@@ -103,31 +100,31 @@ void graphics_end() {
 }
 
 
-void graphics_draw_queue_preview()
+static inline void graphics_draw_queued_tetrominos()
+{
+   graphics_tetromino_draw_queued_tetrominos(engine_get_queued_tetrominos());
+}
+
+
+static inline void graphics_draw_score()
 {
    return;
 }
 
 
-void graphics_draw_score()
-{
-   return;
-}
-
-
-void graphics_draw_held_tetromino()
+static inline void graphics_draw_held_tetromino()
 {
    graphics_tetromino_draw_held_tetromino(engine_get_held_tetromino());
 }
 
 
-void graphics_draw_falling_tetromino()
+static inline void graphics_draw_falling_tetromino()
 {
    graphics_tetromino_draw_falling_tetromino(engine_get_falling_tetromino());
 }
 
 
-void graphics_draw_hard_drop_phantom()
+static inline void graphics_draw_hard_drop_phantom()
 {
    // engine_update_hard_drop_y();
    graphics_tetromino_draw_hard_drop_phantom(engine_get_falling_tetromino());
@@ -139,6 +136,7 @@ void graphics_draw_game()
    graphics_background_draw(); // instead of using glClear
    graphics_playfield_draw();
    graphics_draw_held_tetromino();
+   graphics_draw_queued_tetrominos();
    graphics_draw_falling_tetromino();
    graphics_draw_hard_drop_phantom();
 
