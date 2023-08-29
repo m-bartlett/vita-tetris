@@ -54,36 +54,35 @@ static vita_timestamp_t gravity_timer;
     TO-DO: Update timer code to not assign by reference
 */
 
-
 static void engine_check_drop_lock();
 static void engine_update_gravity();
 
-
+static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
 static inline void engine_input_callback_right() {engine_move_falling_tetromino(1,0);}
 static inline void engine_input_callback_left() {engine_move_falling_tetromino(-1,0);}
-static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
-
 static inline void engine_update_mesh_positions() {
-        graphics_tetromino_position_falling_tetromino(X, Y);
-        graphics_tetromino_position_hard_drop_phantom(X, engine_update_hard_drop_y());
-
+    graphics_tetromino_position_falling_tetromino(X, Y);
+    graphics_tetromino_position_hard_drop_phantom(X, engine_update_hard_drop_y());
 }
+
 
 void engine_init()
 { //{{{
     input_init();
 
-    input_set_callback_up(engine_hard_drop_tetromino);
-    input_set_callback_right(engine_input_callback_right);
-    input_set_callback_down(engine_soft_drop_tetromino);
-    input_set_callback_left(engine_input_callback_left);
+    input_set_button_callback(up,       engine_hard_drop_tetromino);
+    input_set_button_callback(right,    engine_input_callback_right);
+    input_set_button_callback(down,     engine_soft_drop_tetromino);
+    input_set_button_callback(left,     engine_input_callback_left);
 
-    input_set_callback_triangle(engine_swap_held_tetromino_with_active);
-    input_set_callback_circle(engine_swap_held_tetromino_with_active);
-    input_set_callback_cross(engine_rotate_falling_tetromino_clockwise);
-    input_set_callback_square(engine_rotate_falling_tetromino_counterclockwise);
+    input_set_button_callback(triangle, engine_swap_held_tetromino_with_active);
+    input_set_button_callback(circle,   engine_swap_held_tetromino_with_active);
+    input_set_button_callback(l1,       engine_swap_held_tetromino_with_active);
+    input_set_button_callback(r1,       engine_swap_held_tetromino_with_active);
+    input_set_button_callback(cross,    engine_rotate_falling_tetromino_clockwise);
+    input_set_button_callback(square,   engine_rotate_falling_tetromino_counterclockwise);
 
-    input_set_callback_start(engine_input_callback_start);
+    input_set_button_callback(start,    engine_input_callback_start);
 
     bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
@@ -98,15 +97,13 @@ void engine_game_loop(void)
     int32_t remaining_us=0;
     uint32_t loop_timer;
     vita_timestamp_t start_time, end_time;
-    uint32_t frames=0;
 
     while(engine_state == ENGINE_STATE_RUNNING) {
         elapsed_us=0;
         remaining_us=0;
         timer_set_current_time(&start_time);
 
-        if ((++frames)%INPUT_DEBOUNCE_FRAMES == 0) input_read_and_run_callbacks();
-
+        input_read_and_run_callbacks();
         engine_update_gravity();
         engine_check_drop_lock();
         graphics_draw_game();
@@ -196,10 +193,6 @@ const tetromino_t* engine_get_falling_tetromino()
 
 const tetromino_type_t engine_get_held_tetromino()
 { return held_tetromino; }
-
-
-/*const point_t engine_get_active_xy()
-{ return (const point_t){X, Y}; }*/
 
 
 const int8_t engine_update_hard_drop_y()

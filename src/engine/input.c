@@ -1,80 +1,69 @@
-#include "input.h"
+#include <math.h>
 #include <vitasdk.h>
+#include "input.h"
 
-static SceCtrlData input, debounce;
+
+static SceCtrlData input, previous_input;
 
 static void NULL_FUNC(void){};
 static void NULL_FUNC_ANALOG(unsigned char x, unsigned char y){};
 
-#define DECLARE_BUTTON_CALLBACK_AND_SETTER(BUTTON) \
-   static void (*input_callback_ ## BUTTON)(void) = NULL_FUNC; \
-   void input_set_callback_ ## BUTTON(void(*callback)(void)) {\
-      input_callback_ ## BUTTON = callback;\
-   }
-
-#define DECLARE_ANALOG_CALLBACK_AND_SETTER(STICK) \
-   static void (*input_callback_analog_ ## STICK)(unsigned char, unsigned char)=NULL_FUNC_ANALOG; \
-   void input_set_callback_analog_ ## STICK(void(*callback)(unsigned char, unsigned char)) {\
-      input_callback_analog_ ## STICK = callback;\
-   }
-
-DECLARE_BUTTON_CALLBACK_AND_SETTER(up)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(right)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(down)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(left)
-
-DECLARE_BUTTON_CALLBACK_AND_SETTER(triangle)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(circle)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(cross)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(square)
-
-DECLARE_BUTTON_CALLBACK_AND_SETTER(l1)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(l2)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(l3)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(r1)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(r2)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(r3)
-
-DECLARE_BUTTON_CALLBACK_AND_SETTER(select)
-DECLARE_BUTTON_CALLBACK_AND_SETTER(start)
-
-DECLARE_ANALOG_CALLBACK_AND_SETTER(left)
-DECLARE_ANALOG_CALLBACK_AND_SETTER(right)
+vita_timestamp_t button_debounces[INPUT_BITFIELD_WIDTH] = {0};
+void (*button_callbacks[INPUT_BITFIELD_WIDTH])(void) = {NULL_FUNC};
+void (*analog_callbacks[2])(unsigned char, unsigned char) = {NULL_FUNC_ANALOG};
 
 
 void input_init() {
-   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG); // don't need *_WIDE analog
 }
 
-#define IS_PRESSED_HOLDABLE(button) (input.buttons & button)
-#define IS_PRESSED(button) ((!(debounce.buttons & button)) && (input.buttons & button))
+
+#define check_button_held_repeats(button, input_debounce_microseconds) \
+   if (input.buttons & INPUT_BITMASK_ ## button) { \
+      vita_timestamp_t now = timer_get_current_time(); \
+      if (now - button_debounces[INPUT_BITPOS_ ## button] > input_debounce_microseconds) { \
+         button_callbacks[INPUT_BITPOS_ ## button](); \
+         button_debounces[INPUT_BITPOS_ ## button] = now; \
+      } \
+   } \
+   else { \
+      button_debounces[INPUT_BITPOS_ ## button] = 0; \
+   }
+
+
+#define check_button_single_fire(button) \
+   if ( (!(previous_input.buttons & INPUT_BITMASK_ ## button)) \
+        && (input.buttons & INPUT_BITMASK_ ## button) ) { \
+      button_callbacks[INPUT_BITPOS_ ## button](); \
+   }
+
  
 void input_read_and_run_callbacks()
 {
    sceCtrlPeekBufferPositive(0, &input, 1);
    
-   if (IS_PRESSED(SCE_CTRL_UP))       input_callback_up();
-   if (IS_PRESSED_HOLDABLE(SCE_CTRL_RIGHT))    input_callback_right();
-   if (IS_PRESSED_HOLDABLE(SCE_CTRL_DOWN))     input_callback_down();
-   if (IS_PRESSED_HOLDABLE(SCE_CTRL_LEFT))     input_callback_left();
+   check_button_single_fire(up)
+   check_button_held_repeats(right, /*debounce_microseconds=*/67500)
+   check_button_held_repeats(left,  /*debounce_microseconds=*/67500)
+   check_button_held_repeats(down,  /*debounce_microseconds=*/25000)
 
-   if (IS_PRESSED(SCE_CTRL_TRIANGLE)) input_callback_triangle();
-   if (IS_PRESSED(SCE_CTRL_CIRCLE))   input_callback_circle();
-   if (IS_PRESSED(SCE_CTRL_CROSS))    input_callback_cross();
-   if (IS_PRESSED(SCE_CTRL_SQUARE))   input_callback_square();
+   check_button_single_fire(triangle)
+   check_button_single_fire(circle)
+   check_button_single_fire(cross)
+   check_button_single_fire(square)
 
-   if (IS_PRESSED(SCE_CTRL_L1))       input_callback_l1();
-   if (IS_PRESSED(SCE_CTRL_L2))       input_callback_l2();
-   if (IS_PRESSED(SCE_CTRL_L3))       input_callback_l3();
-   if (IS_PRESSED(SCE_CTRL_R1))       input_callback_r1();
-   if (IS_PRESSED(SCE_CTRL_R2))       input_callback_r2();
-   if (IS_PRESSED(SCE_CTRL_R3))       input_callback_r3();
+   check_button_single_fire(l1)
+   // check_button_single_fire(l2)
+   // check_button_single_fire(l3)
+   check_button_single_fire(r1)
+   // check_button_single_fire(r2)
+   // check_button_single_fire(r3)
 
-   if (IS_PRESSED(SCE_CTRL_SELECT))   input_callback_select();
-   if (IS_PRESSED(SCE_CTRL_START))    input_callback_start();
+   check_button_single_fire(select)
+   check_button_single_fire(start)
 
-   input_callback_analog_left(input.lx, input.ly);
-   input_callback_analog_right(input.rx, input.ry);
+   // analog_callbacks[0](input.lx, input.ly);
+   // analog_callbacks[1](input.rx, input.ry);
 
-   debounce = input;
+   previous_input = input;
 }
