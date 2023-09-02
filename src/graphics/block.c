@@ -18,12 +18,12 @@ enum vertex_attribute_location { VERTEX_ATTRIBUTE_POSITION_LOCATION,
 */
 static GLuint program;
 static GLuint texture_id;
-
 static GLuint u_view_matrix_location,
               u_model_matrix_location,
               u_projection_matrix_location,
               u_light_position_location;
 
+// TO-DO: Try adjusting perspective matrix so Z_INITIAL_OFFSET can be 0
 #define Z_INITIAL_OFFSET -20
 static GLfloat u_view_matrix[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1,
                                      [12]=-PLAYFIELD_WIDTH/2,
@@ -95,6 +95,7 @@ void graphics_block_init(void)
                                                          [FACE_LEFT]   = {-1, 0, 0}};
     glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
 
+    // TO-DO: 3 bytes instead of 3 floats, maybe try normalize=true or /255.0 in shader
     const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
         [TETROMINO_TYPE_NULL] = {1.0, 1.0, 1.0},
         [TETROMINO_TYPE_I] = {0.2431, 0.8627, 1.0},
@@ -152,8 +153,8 @@ void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_siz
                           /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,u));
 
     glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TYPE_LOCATION);
-    glVertexAttribPointer(/* location(index) */  VERTEX_ATTRIBUTE_TYPE_LOCATION,
-                          /* dimension(size) */ 2,
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TYPE_LOCATION,  /* a.k.a. index */
+                          /* dimension */ 2,                               /* a.k.a. size */
                           /* type */      GL_UNSIGNED_BYTE,
                           /* normalize */ GL_FALSE,
                           /* stride */    sizeof(graphics_block_vertex_t),
