@@ -7,7 +7,7 @@
 
 
 // 6 vertices for each face of 5 visible faces for each of 4 blocks per tetromino
-#define PREVIEW_SCALE 0.75
+#define PREVIEW_SCALE 0.666
 #define VERTEX_COUNT_MAX (6*5*4) 
 
 // static GLuint vertex_buffer_id;
