@@ -77,11 +77,11 @@ void engine_init()
     input_set_button_callback(left,     engine_input_callback_left);
 
     input_set_button_callback(triangle, engine_swap_held_tetromino_with_active);
-    input_set_button_callback(circle,   engine_swap_held_tetromino_with_active);
-    input_set_button_callback(l1,       engine_swap_held_tetromino_with_active);
-    input_set_button_callback(r1,       engine_swap_held_tetromino_with_active);
-    input_set_button_callback(cross,    engine_rotate_falling_tetromino_clockwise);
-    input_set_button_callback(square,   engine_rotate_falling_tetromino_counterclockwise);
+    input_set_button_callback(l2,       engine_swap_held_tetromino_with_active);
+    input_set_button_callback(r2,       engine_swap_held_tetromino_with_active);
+    input_set_button_callback(circle,   engine_rotate_falling_tetromino_clockwise);
+    input_set_button_callback(square,   engine_rotate_falling_tetromino_clockwise);
+    input_set_button_callback(cross,    engine_rotate_falling_tetromino_counterclockwise);
 
     input_set_button_callback(start,    engine_input_callback_start);
 
@@ -123,7 +123,6 @@ void engine_game_loop(void)
         case ENGINE_STATE_WIN:
             break;
     }
-
 /*}}}*/ }
 
 

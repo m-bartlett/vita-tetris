@@ -43,19 +43,19 @@ void input_read_and_run_callbacks()
    sceCtrlPeekBufferPositive(0, &input, 1);
    
    check_button_single_fire(up)
-   check_button_held_repeats(right, /*debounce_microseconds=*/67500)
-   check_button_held_repeats(left,  /*debounce_microseconds=*/67500)
-   check_button_held_repeats(down,  /*debounce_microseconds=*/25000)
+   check_button_held_repeats(right, /*debounce_microseconds=*/68500)
+   check_button_held_repeats(left,  /*debounce_microseconds=*/68500)
+   check_button_held_repeats(down,  /*debounce_microseconds=*/35000)
 
    check_button_single_fire(triangle)
    check_button_single_fire(circle)
    check_button_single_fire(cross)
    check_button_single_fire(square)
 
-   check_button_single_fire(l1)
+   check_button_single_fire(l2)
    // check_button_single_fire(l2)
    // check_button_single_fire(l3)
-   check_button_single_fire(r1)
+   check_button_single_fire(r2)
    // check_button_single_fire(r2)
    // check_button_single_fire(r3)
 
