@@ -9,11 +9,12 @@
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
-#define VERTEX_ATTRIBUTE_POSITION_LOCATION 0
-#define VERTEX_ATTRIBUTE_TEXCOORD_LOCATION 1
 #define TEXTURE_PATH         "texture/background.bmp"
 #define VERTEX_SHADER_PATH   "shader/background.vert.cg"
 #define FRAGMENT_SHADER_PATH "shader/background.frag.cg"
+
+enum vertex_attribute_location { VERTEX_ATTRIBUTE_POSITION_LOCATION,
+                                 VERTEX_ATTRIBUTE_TEXCOORD_LOCATION };
 
 static GLuint program;
 static GLuint vertex_buffer_id;

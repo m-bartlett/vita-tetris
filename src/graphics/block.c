@@ -5,16 +5,13 @@
 #include "../lib/linalg.h"
 #include "../lib/bmp.h"
 
-#include <stdio.h>  //DELETE DELETE DELETE DELETE DELETE DELETE DELETE DELETE DELETE 
-
 #define TEXTURE_PATH "texture/block.bmp"
 #define VERTEX_SHADER_PATH "shader/block.vert.cg"
 #define FRAGMENT_SHADER_PATH "shader/block.frag.cg"
 
-#define VERTEX_ATTRIBUTE_POSITION_LOCATION 0
-#define VERTEX_ATTRIBUTE_TEXCOORD_LOCATION 1
-#define VERTEX_ATTRIBUTE_TYPE_LOCATION 2
-
+enum vertex_attribute_location { VERTEX_ATTRIBUTE_POSITION_LOCATION,
+                                 VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
+                                 VERTEX_ATTRIBUTE_TYPE_LOCATION };
 
 /*
     TO-DO: Implement #ifdef USE_SINGLE_TEXTURE_OBJ
@@ -58,9 +55,6 @@ static void load_texture()
     free(pixels);
 /*}}}*/ }
 
-/* TO-DO:
-    Review which uniform locations need to be global and expose functions to modify static ones
-*/
 
 void graphics_block_init(void)
 { //{{{
