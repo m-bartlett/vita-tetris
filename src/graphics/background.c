@@ -7,8 +7,6 @@
 #include "background.h"
 #include "../lib/bmp.h"
 
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
-
 #define TEXTURE_PATH         "texture/background.bmp"
 #define VERTEX_SHADER_PATH   "shader/background.vert.cg"
 #define FRAGMENT_SHADER_PATH "shader/background.frag.cg"
@@ -52,70 +50,70 @@ static void load_texture() { //{{{
 
 
 void graphics_background_init(void) { //{{{
-   program = glCreateProgram();
-   load_shader("app0:" VERTEX_SHADER_PATH, &program);
-   load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
+    program = glCreateProgram();
+    load_shader("app0:" VERTEX_SHADER_PATH, &program);
+    load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
 
-   glBindAttribLocation(program, VERTEX_ATTRIBUTE_POSITION_LOCATION, "position");
-   glBindAttribLocation(program, VERTEX_ATTRIBUTE_TEXCOORD_LOCATION, "texcoord");
+    glBindAttribLocation(program, VERTEX_ATTRIBUTE_POSITION_LOCATION, "position");
+    glBindAttribLocation(program, VERTEX_ATTRIBUTE_TEXCOORD_LOCATION, "texcoord");
 
-   glLinkProgram(program);
-   glUseProgram(program);
+    glLinkProgram(program);
+    glUseProgram(program);
 
-   glGenBuffers(1, &vertex_buffer_id);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-   glBufferData(/*type*/ GL_ARRAY_BUFFER,
-                /*size*/ sizeof(vertex_buffer),
-                /*data*/ vertex_buffer,
-                /*usage*/GL_STATIC_DRAW);
+    glGenBuffers(1, &vertex_buffer_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    glBufferData(/*type*/ GL_ARRAY_BUFFER,
+                 /*size*/ sizeof(vertex_buffer),
+                 /*data*/ vertex_buffer,
+                 /*usage*/GL_STATIC_DRAW);
 
-   load_texture();
+    load_texture();
 
-   glUniform1i(glGetUniformLocation(program, "gTexture"), 1);
+    glUniform1i(glGetUniformLocation(program, "gTexture"), 1);
 /*}}}*/ }
 
 
 void graphics_background_end(void) { //{{{
-   glDeleteProgram(program);
-   glDeleteTextures(/*texture_quantity=*/1, &texture_id);
-   glDeleteBuffers(/*buffer_quantity=*/1, &vertex_buffer_id);
+    glDeleteProgram(program);
+    glDeleteTextures(/*texture_quantity=*/1, &texture_id);
+    glDeleteBuffers(/*buffer_quantity=*/1, &vertex_buffer_id);
 /*}}}*/ }
 
 
 void graphics_background_draw(void) { //{{{
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-   glUseProgram(program);
-   glBindTexture(GL_TEXTURE_2D, texture_id);
-   glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    glUseProgram(program);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glActiveTexture(GL_TEXTURE0);
 
    // TO-DO: For single texture object, use GL_TEXTURE1
 
-   glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-   glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION,
-                         /* dimension */ 2,
-                         /* type */      GL_BYTE,
-                         /* normalize */ GL_FALSE,
-                         /* stride */    sizeof(vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(vertex_t,x));
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION,
+                          /* dimension */ 2,
+                          /* type */      GL_BYTE,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(vertex_t,x));
 
-   glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-   glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
-                         /* dimension */ 2,
-                         /* type */      GL_UNSIGNED_BYTE,
-                         /* normalize */ GL_FALSE,
-                         /* stride */    sizeof(vertex_t),
-                         /* pointer */   (GLvoid*)offsetof(vertex_t,u));
-
-
-   glDisable(GL_DEPTH_TEST);
-   glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP,
-                /*first=*/0,
-                /*count=*/ARRAY_SIZE(vertex_buffer));
-   glEnable(GL_DEPTH_TEST);
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
+                          /* dimension */ 2,
+                          /* type */      GL_UNSIGNED_BYTE,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(vertex_t,u));
 
 
-   glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-   glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-   glUseProgram(0);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP,
+                 /*first=*/0,
+                 /*count=*/ARRAY_SIZE(vertex_buffer));
+    glEnable(GL_DEPTH_TEST);
+
+
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 /*}}}*/ }
