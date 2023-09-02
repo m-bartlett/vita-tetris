@@ -5,6 +5,7 @@
 #include "tetromino.h"
 #include "playfield.h"
 #include "background.h"
+#include "border.h"
 #include "text.h"
 
 #include "../engine/core.h"
@@ -86,12 +87,13 @@ void graphics_init() {
    graphics_background_init();
    graphics_block_init();
    // graphics_text_init();
-   // graphics_menu_init();
    graphics_playfield_init();
    graphics_tetromino_init();
+   graphics_border_init();
 }
 
 void graphics_end() {
+   graphics_border_end();
    graphics_tetromino_end();
    graphics_playfield_end();
    graphics_block_end();
@@ -100,56 +102,48 @@ void graphics_end() {
 }
 
 
-static inline void graphics_draw_queued_tetrominos()
+static inline void graphics_core_draw_queued_tetrominos()
 {
    graphics_tetromino_draw_queued_tetrominos(engine_get_queued_tetrominos());
 }
 
 
-static inline void graphics_draw_score()
-{
-   return;
-}
-
-
-static inline void graphics_draw_held_tetromino()
+static inline void graphics_core_draw_held_tetromino()
 {
    graphics_tetromino_draw_held_tetromino(engine_get_held_tetromino());
 }
 
 
-static inline void graphics_draw_falling_tetromino()
+static inline void graphics_core_draw_falling_tetromino()
 {
    graphics_tetromino_draw_falling_tetromino(engine_get_falling_tetromino());
 }
 
 
-static inline void graphics_draw_hard_drop_phantom()
+static inline void graphics_core_draw_hard_drop_phantom()
 {
-   // engine_update_hard_drop_y();
    graphics_tetromino_draw_hard_drop_phantom(engine_get_falling_tetromino());
+}
+
+
+static inline void graphics_core_draw_score()
+{
+   // TO-DO implement this
+   return;
 }
 
 
 void graphics_draw_game()
 {  
    graphics_background_draw(); // instead of using glClear
+   graphics_border_draw();
    graphics_playfield_draw();
-   graphics_draw_held_tetromino();
-   graphics_draw_queued_tetrominos();
-   graphics_draw_falling_tetromino();
-   graphics_draw_hard_drop_phantom();
+   graphics_core_draw_held_tetromino();
+   graphics_core_draw_queued_tetrominos();
+   graphics_core_draw_falling_tetromino();
+   graphics_core_draw_hard_drop_phantom();
 
-
-
-   /*   queue preview
-    - queue_preview_to_vertices() every piece update
-    - disable alpha if needed
-    - set translation uniforms
-    - draw_queue_preview*/
-
-
-   graphics_draw_score();
+   graphics_core_draw_score();
 
    vglSwapBuffers(GL_FALSE);
    return;

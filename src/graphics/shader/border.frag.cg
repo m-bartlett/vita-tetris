@@ -1,0 +1,5 @@
+uniform float3 u_border_color;
+
+float4 main() {
+    return float4(u_border_color, 1);
+}
