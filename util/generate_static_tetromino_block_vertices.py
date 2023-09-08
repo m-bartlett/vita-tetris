@@ -3,7 +3,7 @@
 
 """
 echo -e \
-  "$(sed -n '1,59p' ../src/graphics/tetromino_meshes.c)"\
+  "$(sed -n '1,55p' ../src/graphics/tetromino_meshes.c)"\
   "\n\n\n"\
   "$(./generate_static_tetromino_block_vertices.py)" \
   &> ../src/graphics/tetromino_meshes.c
@@ -225,7 +225,7 @@ def scan_left_to_right(grid, block):
       previous_occupied = current_occupied
 
     if previous_occupied:
-      lines += add_right_face(x-1, y, block)
+      lines += add_right_face(x, y, block)
 
   return lines
 
