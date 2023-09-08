@@ -8,20 +8,33 @@
 
 enum vertex_attribute_location { VERTEX_ATTRIBUTE_POSITION_LOCATION };
 
-typedef struct { float x, y, width, height;
-                 uint8_t thickness;
-                 float r, g, b; } border_t;
+typedef struct { const float x, y, width, height;
+                 const uint8_t thickness;
+                 const float r, g, b; } border_t;
 
-typedef struct { float x, y; } vertex_t;
+typedef struct { const float x, y; } vertex_t;
 
 static const border_t borders[] = {
     {
-        // .x = -PLAYFIELD_WIDTH/2, .y = -PLAYFIELD_HEIGHT/2,
-        // .width = PLAYFIELD_WIDTH, .height = PLAYFIELD_HEIGHT,
+        // Playfield border
         #define PLAYFIELD_BORDER_WIDTH 0.56
         #define PLAYFIELD_BORDER_HEIGHT 1.9
         .x = -(PLAYFIELD_BORDER_WIDTH/2), .y = -(PLAYFIELD_BORDER_HEIGHT/2),
         .width = PLAYFIELD_BORDER_WIDTH, .height = PLAYFIELD_BORDER_HEIGHT,
+        .r=0.85, .g=0.85, .b=0.85,
+        .thickness = 2,
+    },
+    {
+        // Tetromino queue border
+        .x = 0.33, .y = -0.61,
+        .width = 0.18, .height = 1.1,
+        .r=0.85, .g=0.85, .b=0.85,
+        .thickness = 2,
+    },
+    {
+        // Held tetromino border
+        .x = -0.54, .y = 0.375,
+        .width = 0.2, .height = .2,
         .r=0.85, .g=0.85, .b=0.85,
         .thickness = 2,
     },
@@ -32,7 +45,6 @@ static const border_t borders[] = {
 static GLuint program;
 static GLuint vertex_buffer_ids[borders_size];
 static GLuint u_border_color_location;
-
 
 void graphics_border_init(void) { //{{{
     program = glCreateProgram();
