@@ -23,14 +23,10 @@ typedef struct { uint8_t x, y, z;
                  uint8_t u, v;
                  uint8_t block, face; } graphics_block_vertex_t;
 
-// ROM meshes are indexed by tetromino type, so we don't need to redundantly store that data
-typedef struct { uint8_t x, y, z;
-                 uint8_t u, v, face; } graphics_block_ROM_vertex_t;
-
 void graphics_block_init(void);
 void graphics_block_end(void);
 void graphics_block_set_model_matrix(const float model_matrix[16]);
-void graphics_block_draw(GLuint vertex_buffer_id, unsigned int vertex_buffer_size);
+void graphics_block_draw(GLuint vertex_buffer_id);
 void graphics_block_add_block_to_vertex_buffer(uint8_t x,
                                                uint8_t y,
                                                uint8_t block_type,

@@ -11,7 +11,7 @@ INDEX2TETROMINO_TYPE_T[TETROMINO_TYPE_QUANTITY-1] = { TETROMINO_TYPE_I,
                                                       TETROMINO_TYPE_Z };
 
 static const uint16_t
-TETROMINO_ROTATIONS[TETROMINO_TYPE_QUANTITY][4] = {
+TETROMINO_ROTATIONS[TETROMINO_TYPE_QUANTITY][TETROMINO_ROTATION_QUANTITY] = {
   
   [TETROMINO_TYPE_NULL] = {0,0,0,0},
                                     // rotation =  0    90   180   270 
@@ -61,6 +61,13 @@ const tetromino_type_t index2tetromino_type_t(const uint8_t i)
 const uint16_t tetromino_get_grid(const tetromino_t *t)
 {
   return TETROMINO_ROTATIONS[t->type][t->rotation];
+}
+
+
+const uint16_t tetromino_get_grid_from_type_and_rotation(const tetromino_type_t t,
+                                                         const tetromino_rotation_t r)
+{
+  return TETROMINO_ROTATIONS[t][r];
 }
 
 

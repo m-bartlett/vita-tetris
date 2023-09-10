@@ -6,19 +6,18 @@
 #include "../engine/tetromino.h"
 
 // 4 vertices for each face of 5 visible faces for each block in the playfield grid
-#define VERTEX_COUNT_MAX (4*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH*100)
+#define VERTEX_COUNT_MAX (4*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
 
 
 static GLuint vertex_buffer_id;
 static graphics_block_vertex_t vertex_buffer[VERTEX_COUNT_MAX]={{0}};
-static uint32_t vertex_buffer_size;
 
 void graphics_playfield_update_mesh(void)
 { //{{{
     /* convert playfield grid blocks to block vertices */
     uint8_t y=0, x=0, r=PLAYFIELD_HEIGHT-1;
     playfield_view_t playfield = playfield_view();
-    vertex_buffer_size = 0;
+    unsigned int vertex_buffer_size = 0;
     
     while (y < PLAYFIELD_HEIGHT) {
         x = 0;
@@ -69,5 +68,5 @@ static const float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
 void graphics_playfield_draw(void)
 { //{{{
     graphics_block_set_model_matrix(model_matrix);
-    graphics_block_draw(vertex_buffer_id, vertex_buffer_size);
+    graphics_block_draw(vertex_buffer_id);
 /*}}}*/ }
