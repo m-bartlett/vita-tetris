@@ -86,22 +86,14 @@ void graphics_border_end(void) { //{{{
 
 
 void graphics_border_draw(void) { //{{{
+    glUseProgram(program);
 
     for (int i = 0; i < borders_size; ++i) {
-        glUseProgram(program);  // MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE 
-
         const border_t border = borders[i];
-
-        const GLfloat u_border_color[3] = {border.r, border.g, border.b};
-        glUniform3fv(u_border_color_location, 1, u_border_color);
-        // glUniform3fv(u_border_color_location, 1, &border+offsetof(border_t,r));  //TODO: TRY ME
+        glUniform3fv(u_border_color_location, 1, (const GLfloat[3]){border.r, border.g, border.b});
 
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ids[i]);
 
-        // MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP
-        // MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP
-        // MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP
-        // MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP -- MOVE OUT OF LOOP
         glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
         glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION,
                               /* dimension */ 2,
@@ -112,9 +104,9 @@ void graphics_border_draw(void) { //{{{
 
         glLineWidth((GLfloat)border.thickness);
         glDrawArrays(/*mode=*/GL_LINE_LOOP, /*first=*/0, /*count=*/4);
-
-        glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
     }
+
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);

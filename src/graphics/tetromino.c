@@ -108,16 +108,13 @@ void graphics_tetromino_end(void)
                 if (previous_grid_cell_occupied && current_grid_cell_occupied) {
                     add_front_face(x, y, block_type);
                 }
-                // TO-DO: test ! without wrapped ()
-                else if ((!previous_grid_cell_occupied) && current_grid_cell_occupied) {
+                else if (!previous_grid_cell_occupied && current_grid_cell_occupied) {
                     add_left_face(x, y, block_type);
                     add_front_face(x, y, block_type);
                 }
                 else if (previous_grid_cell_occupied && (!current_grid_cell_occupied)) {
                     add_right_face(x-1, y, block_type);
                 }
-                // else if (!(previous_grid_cell_occupied || current_grid_cell_occupied)) {
-                // }
 
                 previous_grid_cell_occupied = current_grid_cell_occupied;
             }
@@ -142,17 +139,12 @@ void graphics_tetromino_end(void)
                 maskbit = get_maskbit_for_grid_coordinate(x,y);
                 current_grid_cell_occupied = maskbit&grid;
 
-                // if (previous_grid_cell_occupied && current_grid_cell_occupied) {
-                // }
-                // TO-DO: test ! without wrapped ()
-                if ((!previous_grid_cell_occupied) && current_grid_cell_occupied) {
+                if (!previous_grid_cell_occupied && current_grid_cell_occupied) {
                     add_top_face(x, y, block_type);
                 }
                 else if (previous_grid_cell_occupied && (!current_grid_cell_occupied)) {
                     add_bottom_face(x, y+1, block_type);
                 }
-                // else if (!(previous_grid_cell_occupied || current_grid_cell_occupied)) {
-                // }
 
                 previous_grid_cell_occupied = current_grid_cell_occupied;
             }
