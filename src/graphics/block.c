@@ -96,6 +96,7 @@ void graphics_block_init(void)
     glUniform3fv(u_face_type_normals_location, FACE_QUANTITY, (const float*)u_face_type_normals);
 
     // TO-DO: 3 bytes instead of 3 floats, maybe try normalize=true or /255.0 in shader
+    // TO-DO: extern these color variables for use in text drawing as well
     const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
         [TETROMINO_TYPE_NULL] = {1.0, 1.0, 1.0},
         [TETROMINO_TYPE_I] = {0.2431, 0.8627, 1.0},
@@ -164,7 +165,11 @@ void graphics_block_draw(GLuint vertex_buffer_id)
                           /* stride */    sizeof(graphics_block_vertex_t),
                           /* pointer */   (GLvoid*)offsetof(graphics_block_vertex_t,block));
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);

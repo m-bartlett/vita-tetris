@@ -104,13 +104,9 @@ void graphics_background_draw(void) { //{{{
                           /* stride */    sizeof(vertex_t),
                           /* pointer */   (GLvoid*)offsetof(vertex_t,u));
 
-
-    glDisable(GL_DEPTH_TEST);
     glDrawArrays(/*mode=*/GL_TRIANGLE_STRIP,
                  /*first=*/0,
                  /*count=*/ARRAY_SIZE(vertex_buffer));
-    glEnable(GL_DEPTH_TEST);
-
 
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);

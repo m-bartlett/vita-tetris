@@ -73,8 +73,6 @@ void load_shader(const char *shader_path, GLuint *program) { //{{{
 static inline void vgl_init() {
    vglInitExtended(0, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x800000, SCE_GXM_MULTISAMPLE_4X);
    glViewport(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-   glEnable(GL_DEPTH_TEST);
-   glEnable(GL_CULL_FACE);
    glFrontFace(GL_CW); 
    glClearColor(0.1, 0.1, 0.1, 1.0);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
