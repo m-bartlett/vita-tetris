@@ -25,7 +25,7 @@ unsigned char* read_rgb_bmp_image(const char* filename,
     *width = _width;
     *height = _height;
 
-    unsigned int size = 3 * _width * _height;
+    const unsigned int size = 3 * _width * _height;
     unsigned char* buffer =  (unsigned char*)malloc(size);
 
     fread(buffer, sizeof(unsigned char), size, f); 
@@ -42,9 +42,9 @@ unsigned char* read_rgb_bmp_image(const char* filename,
 }
 
 
-unsigned char* read_rgb_bmp_image_as_grayscale(const char* filename,
-                                               unsigned int* width,
-                                               unsigned int* height)
+unsigned char* read_rgb_bmp_image_as_monochrome(const char* filename,
+                                                unsigned int* width,
+                                                unsigned int* height)
 {
     unsigned char* buffer = read_rgb_bmp_image(filename, width, height);
     const unsigned int row_size = (*width) * 3;
@@ -58,5 +58,31 @@ unsigned char* read_rgb_bmp_image_as_grayscale(const char* filename,
           buffer[i++] = magnitude;
        }
     }
+    return buffer;
+}
+
+
+unsigned char* read_monochrome_bmp(const char* filename,
+                                   unsigned int* width,
+                                   unsigned int* height)
+{
+    FILE* f = fopen(filename, "rb");
+    unsigned char info[54];
+
+    // read header
+    fread(info, sizeof(unsigned char), 54, f); 
+    const unsigned int _width = *(unsigned int*)&info[18];
+    const unsigned int _height = *(unsigned int*)&info[22];
+    *width = _width;
+    *height = _height;
+
+
+    const size_t size = _width * _height;
+    unsigned char* buffer =  (unsigned char*)malloc(size);
+
+    fseek(f, 1024, SEEK_CUR); // Empirical hack observed in monochrome bitmap, not sure if universal
+    fread(buffer, sizeof(unsigned char), size, f); 
+    fclose(f);
+
     return buffer;
 }

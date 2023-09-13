@@ -35,7 +35,7 @@ static void load_texture()
 { //{{{
     // Block texture is grayscale that's dynamically colored based on block type & user preferences
     unsigned int width, height;
-    uint8_t *pixels = read_rgb_bmp_image_as_grayscale("app0:" TEXTURE_PATH, &width, &height);
+    uint8_t *pixels = read_rgb_bmp_image_as_monochrome("app0:" TEXTURE_PATH, &width, &height);
     glGenTextures(1, &texture_id);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_id);
