@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import pathlib
 from PIL import Image
 
 class Tetromino: 
@@ -25,8 +26,11 @@ palette_serialized = [v for c in enum_encoded_palette.values() for v in c]
 palette_serialized.extend([0]*(48-len(palette_serialized)))
 data = bytes(palette_serialized)
 
-image_path = sys.argv[0]
+image_path = sys.argv[1]
 image=Image.open(image_path)
 image.putpalette(data)
-image=image.convert('RGB')
-image.save(f"modified_{image_path}")
+image=image.convert('L')  # monochrome
+
+p = pathlib.Path(image_path)
+save_path = str(p.with_stem(f"modified_{p.stem}"))
+image.save(save_path)

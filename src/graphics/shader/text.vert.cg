@@ -1,0 +1,9 @@
+void main(
+    float2 position,
+    float2 texture_coordinate,
+    float2 out texture_coordinate_out : TEXCOORD0,
+    float4 out position_out : POSITION
+) {
+    texture_coordinate_out = texture_coordinate;
+    position_out = float4(position, 0, 1.0);
+}

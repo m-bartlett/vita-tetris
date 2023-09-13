@@ -86,7 +86,7 @@ void graphics_init() {
    vgl_init();
    graphics_background_init();
    graphics_block_init();
-   // graphics_text_init();
+   graphics_text_init();
    graphics_playfield_init();
    graphics_tetromino_init();
    graphics_border_init();
@@ -94,6 +94,7 @@ void graphics_init() {
 
 void graphics_end() {
    graphics_border_end();
+   graphics_text_end();
    graphics_tetromino_end();
    graphics_playfield_end();
    graphics_block_end();
@@ -137,6 +138,7 @@ void graphics_draw_game()
 {  
    graphics_background_draw(); // instead of using glClear
    graphics_border_draw();
+   graphics_text_draw();
    graphics_playfield_draw();
    graphics_core_draw_held_tetromino();
    graphics_core_draw_queued_tetrominos();
