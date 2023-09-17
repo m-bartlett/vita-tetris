@@ -1,6 +1,6 @@
 void main(
     float2 position,
-    float2 texcoord,
+    float2 texcoord,  /*TO-DO rename to match text variable names*/
     float2 out f_texcoord : TEXCOORD0,
     float4 out gl_Position : POSITION /*TO-DO RENAME ME*/
 ) {

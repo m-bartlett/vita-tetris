@@ -229,7 +229,7 @@ void graphics_tetromino_draw_held_tetromino(const tetromino_type_t t)
     get_tetromino_center_offsets(t, &centering_offset_x, &centering_offset_y);
     graphics_block_set_model_matrix((const float[]){ [0]=PREVIEW_SCALE, [5]=PREVIEW_SCALE,
                                                      [10]=1, [15]=1,
-                                                     [12]=-PLAYFIELD_WIDTH/2 + centering_offset_x,
+                                                     [12]=-PLAYFIELD_WIDTH+4.4+centering_offset_x,
                                                      [13]=PLAYFIELD_HEIGHT-6 - centering_offset_y});
     graphics_block_draw(vertex_buffer_ids[t][0]);
 /*}}}*/ }
@@ -247,7 +247,7 @@ void graphics_tetromino_draw_queued_tetrominos(const tetromino_type_t* queue)
         graphics_block_set_model_matrix((const float[]){
             [0]=PREVIEW_SCALE, [5]=PREVIEW_SCALE,
             [10]=1, [15]=1,
-            [12]=PLAYFIELD_WIDTH+2+centering_offset_x,
+            [12]=PLAYFIELD_WIDTH+3+centering_offset_x,
             [13]=(PLAYFIELD_HEIGHT*2/3 - centering_offset_y)-((i)*(3*PREVIEW_SCALE))
         });
         graphics_block_draw(vertex_buffer_ids[t][0]);

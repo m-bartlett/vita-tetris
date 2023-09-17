@@ -1,19 +1,21 @@
 uniform sampler2D u_font_bitmap_texture : TEXUNIT0;
-uniform float3    u_block_type_colors[8];
+// uniform float3    u_block_type_colors[10];
 
 // uniform sampler2D u_font_bitmap_texture2 : TEXUNIT1;  // TO-DO: Maybe handy for extra menu textures?
 
 float4 main(
     float2 texture_coordinate : TEXCOORD0
 ) {
-    int palette_index = tex2D(u_font_bitmap_texture, texture_coordinate)*255;
-    float4 color;
-    if (palette_index == 0) {
-        color = float4(0,0,0,0);
-    }
-    else {
-        color = float4(u_block_type_colors[palette_index], 1);
-    }
+    // int palette_index = tex2D(u_font_bitmap_texture, texture_coordinate)*255;
+    // float4 color;
+    // if (palette_index == 0) {
+    //     color = float4(0,0,0,0);
+    // }
+    // else {
+    //     color = float4(u_block_type_colors[palette_index], 1);
+    // }
 
-    return color;
+    float3 texel = tex2D(u_font_bitmap_texture, texture_coordinate);
+    if (texel == float3(0,0,0)) return float4(0,0,0,0);
+    return float4(texel, 1);
 }

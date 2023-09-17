@@ -1,4 +1,6 @@
 #include "scoring.h"
+#include "../graphics/text.h"
+
 
 static uint8_t cleared_lines = 0;
 static uint8_t total_cleared_lines = 0;
@@ -13,6 +15,10 @@ const uint32_t scoring_get_score() { return score; }
 const uint16_t scoring_get_cleared_lines() { return total_cleared_lines; }
 
 
+static inline void add_score(unsigned int x) {
+    score += x;
+    graphics_text_update_score_number(score);
+}
 
 /* https://tetris.fandom.com/wiki/Scoring?so=search#Guideline_scoring_system */
 const uint8_t scoring_add_line_clears(uint8_t lines)
@@ -21,9 +27,14 @@ const uint8_t scoring_add_line_clears(uint8_t lines)
         score += SIMULTANEOUS_LINE_CLEAR_SCORES[lines-1] * level;
         cleared_lines += lines;
         total_cleared_lines += lines;
+        graphics_text_update_cleared_lines_number(total_cleared_lines);
         if (cleared_lines >= SCORING_LINES_PER_LEVEL) {
             cleared_lines %= SCORING_LINES_PER_LEVEL;
-            if (level < SCORING_MAX_LEVEL ) return ++level;
+            if (level < SCORING_MAX_LEVEL ) {
+                ++level;
+                graphics_text_update_level_number(level+1);
+                return level;
+            }
         }
     }
     return 0;
@@ -32,11 +43,11 @@ const uint8_t scoring_add_line_clears(uint8_t lines)
 
 void scoring_add_soft_drop()
 {
-    score += SCORING_POINTS_PER_CELL_SOFT_DROP;
+    add_score(SCORING_POINTS_PER_CELL_SOFT_DROP);
 }
 
 
 void scoring_add_hard_drop(uint8_t drop_height)
 {
-    score += SCORING_POINTS_PER_CELL_HARD_DROP * drop_height;
+    add_score(SCORING_POINTS_PER_CELL_HARD_DROP * drop_height);
 }

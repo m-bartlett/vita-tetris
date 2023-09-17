@@ -26,15 +26,36 @@ static const border_t borders[] = {
     },
     {
         // Tetromino queue border
-        .x = 0.33, .y = -0.61,
+        .x = 0.38, .y = -0.61,
         .width = 0.18, .height = 1.1,
         .r=0.85, .g=0.85, .b=0.85,
         .thickness = 2,
     },
     {
         // Held tetromino border
-        .x = -0.54, .y = 0.375,
-        .width = 0.2, .height = .2,
+        .x = -0.56, .y = 0.375,
+        .width = 0.18, .height = .2,
+        .r=0.85, .g=0.85, .b=0.85,
+        .thickness = 2,
+    },
+    {
+        // Score border
+        .x = -0.324, .y = -0.01,
+        .width = -0.288, .height = .125,
+        .r=0.85, .g=0.85, .b=0.85,
+        .thickness = 2,
+    },
+    {
+        // Level border
+        .x = -0.415, .y = -0.405,
+        .width = -0.102, .height = .125,
+        .r=0.85, .g=0.85, .b=0.85,
+        .thickness = 2,
+    },
+    {
+        // Lines border
+        .x = -0.392, .y = -0.765,
+        .width = -0.148, .height = .125,
         .r=0.85, .g=0.85, .b=0.85,
         .thickness = 2,
     },
@@ -102,7 +123,7 @@ void graphics_border_draw(void) { //{{{
                               /* stride */    sizeof(vertex_t),
                               /* pointer */   (GLvoid*)offsetof(vertex_t,x));
 
-        glLineWidth((GLfloat)border.thickness);
+        glLineWidth(border.thickness);
         glDrawArrays(/*mode=*/GL_LINE_LOOP, /*first=*/0, /*count=*/4);
     }
 

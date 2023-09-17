@@ -1,15 +1,24 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include "core.h"
 #include "text.h"
 #include "../lib/bmp.h"
 
-#define BITMAP_FONT_WIDTH 11.0
-#define BITMAP_FONT_HEIGHT 4.0
-#define GLYPH_WIDTH 4.0
-#define GLYPH_HEIGHT 6.0
-#define GLYPH_KERNING 0.2
-#define FONT_SIZE 10.0
+#define BITMAP_FONT_WIDTH 11
+#define BITMAP_FONT_HEIGHT 4
+#define GLYPH_WIDTH 20
+#define GLYPH_HEIGHT 28
+#define GLYPH_BORDER 1
+#define GLYPH_BORDER_WIDTH  ((float)GLYPH_BORDER/(float)GLYPH_WIDTH)
+#define GLYPH_BORDER_HEIGHT ((float)GLYPH_BORDER/(float)GLYPH_HEIGHT)
+#define GLYPH_KERNING 0.12
+
+#if ((BITMAP_FONT_WIDTH * GLYPH_WIDTH) % 4) != 0 || ((BITMAP_FONT_HEIGHT * GLYPH_HEIGHT) % 4) != 0
+    #error The given font bitmap dimensions are not perfectly divisible by 4. The bmp library \
+           included here does not have a dimension adapting feature so any .bmp images used must \
+           have dimensions which are each multiples of 4.
+#endif
 
 #define TEXTURE_PATH         "texture/font.bmp"
 #define VERTEX_SHADER_PATH   "shader/text.vert.cg"
@@ -18,12 +27,28 @@
 enum vertex_attribute_location { VERTEX_ATTRIBUTE_POSITION_LOCATION,
                                  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION };
 
-typedef struct { float x, y; float u, v; } vertex_t;
-typedef struct {const char* message; const float x,y; } textbox_t;
+typedef struct { float x, y, u, v; } vertex_t;
+typedef struct {const char* message; const float x, y, font_size; } textbox_t;
+
+enum text_buffer_enum { TEXT_SCORE,
+                        TEXT_LINES,
+                        TEXT_NEXT,
+                        TEXT_HELD,
+                        TEXT_LEVEL,
+                        TEXT_SCORE_NUMBER,
+                        TEXT_LINES_NUMBER,
+                        TEXT_LEVEL_NUMBER,
+                        TEXT_BUFFER_QUANTITY };
 
 const textbox_t textboxes[] = {
-    {.message = "SCORE", .x=-15.0, .y=-0.61},
-    {.message = "LINES", .x=-15.0, .y=-3.61},
+    [TEXT_NEXT]  = {.message = "NEXT",  .x=9.15,   .y=4.933,   .font_size=2.0},
+    [TEXT_HELD]  = {.message = "HELD",  .x=-13.5, .y=5.74,   .font_size=2.0},
+    [TEXT_SCORE] = {.message = "SCORE", .x=-13.9, .y=1.31,  .font_size=2.0},
+    [TEXT_LEVEL] = {.message = "LEVEL", .x=-13.9, .y=-2.5, .font_size=2.0},
+    [TEXT_LINES] = {.message = "LINES", .x=-13.9, .y=-6, .font_size=2.0},
+    [TEXT_SCORE_NUMBER] = {.message = "000000", .x=-13.9-2/3.0, .y=0,  .font_size=2.0},
+    [TEXT_LEVEL_NUMBER] = {.message = "00",   .x=-11.9-1/3.0, .y=-3.81, .font_size=2.0},
+    [TEXT_LINES_NUMBER] = {.message = "000",   .x=-12.8, .y=-7.31, .font_size=2.0},
 };
 #define textboxes_size ARRAY_SIZE(textboxes)
 
@@ -40,6 +65,29 @@ static void load_texture()
        glyphs appear as if they are assembled from the same tetrominos the player is stacking. */
     unsigned int width, height;
     uint8_t *pixels = read_monochrome_bmp("app0:" TEXTURE_PATH, &width, &height);
+
+    const size_t rgb_pixels_size = 3*width*height;
+    // Vita crashes if we allocate this on the stack with larger images
+    unsigned char* rgb_pixels =  (unsigned char*)malloc(rgb_pixels_size);
+
+    #define add_rgb_pixel(r,g,b) rgb_pixels[i]=r, rgb_pixels[i+1]=g, rgb_pixels[i+2]=b
+
+    for (unsigned int i = 0, j=0; i < rgb_pixels_size; i+=3, ++j) {
+        switch(pixels[j]) {
+            case 0:                add_rgb_pixel(  0,   0,   0); break;
+            case TETROMINO_TYPE_I: add_rgb_pixel( 42, 168, 191); break;
+            case TETROMINO_TYPE_O: add_rgb_pixel(192, 156,  25); break;
+            case TETROMINO_TYPE_T: add_rgb_pixel(135,  30, 115); break;
+            case TETROMINO_TYPE_J: add_rgb_pixel( 25,  67, 168); break;
+            case TETROMINO_TYPE_L: add_rgb_pixel(228, 106,   8); break;
+            case TETROMINO_TYPE_S: add_rgb_pixel(101, 167,  16); break;
+            case TETROMINO_TYPE_Z: add_rgb_pixel(168,  19,  39); break;
+            default:               add_rgb_pixel(255, 255, 255); break;
+        }
+    }
+    
+    free(pixels);
+
     glGenTextures(1, &texture_id);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -49,14 +97,13 @@ static void load_texture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(/* target */ GL_TEXTURE_2D,
                  /* level */  0,
-                 /* intfmt */ GL_RED,
+                 /* intfmt */ GL_RGB,
                  /* width */  width,
                  /* height */ height,
                  /* border */ 0,
-                 /* format */ GL_RED,
+                 /* format */ GL_RGB,
                  /* type */   GL_UNSIGNED_BYTE,
-                 /* data */   pixels);
-    free(pixels);
+                 /* data */   rgb_pixels);
 /*}}}*/ }
 
 
@@ -153,8 +200,12 @@ static void get_glyph_bitmap_texcoords(char c, float *u, float *v)
 /*}}}*/ }
 
 
-static GLuint text_to_glyph_vertices(const char* message, float x, float y)
-{
+static void text_to_glyph_vertices(GLuint vertex_buffer_id,
+                                   const char* message,
+                                   float x,
+                                   float y,
+                                   float font_size)
+{ //{{{
     const unsigned int message_length = strlen(message);
     const size_t vertex_buffer_size = message_length*4;
     vertex_t vertex_buffer[vertex_buffer_size];
@@ -162,39 +213,52 @@ static GLuint text_to_glyph_vertices(const char* message, float x, float y)
     float u, v;
 
     #define add_vertex(X, Y, U, V) \
-        vertex_buffer[vertex_index++]=(vertex_t){(X)*(FONT_SIZE*GLYPH_WIDTH/DISPLAY_WIDTH),\
-                                                 (Y)*(FONT_SIZE*GLYPH_HEIGHT/DISPLAY_HEIGHT),\
-                                                 (U)/BITMAP_FONT_WIDTH,\
-                                                 (V)/BITMAP_FONT_HEIGHT}
+        vertex_buffer[vertex_index++] = (vertex_t) { \
+            (X)*((float)font_size*(float)GLYPH_WIDTH/(float)DISPLAY_WIDTH), \
+            (Y)*((float)font_size*(float)GLYPH_HEIGHT/(float)DISPLAY_HEIGHT), \
+            (U)/(float)BITMAP_FONT_WIDTH, \
+            (V)/(float)BITMAP_FONT_HEIGHT \
+        }
+
     float _x = x;
     for (unsigned int i = 0; i < message_length; ++i) {
         char c = message[i];
-        // if (c == ' ') continue;
-        // else if (c == '\n') { y+=1; continue; }
-        // float _x = x + (i*(GLYPH_WIDTH+GLYPH_KERNING)*FONT_SIZE);
-        // float _x = x + (i*GLYPH_WIDTH);
+        if (c == ' ') goto glyph_vertices_skip;
+        else if (c == '\n') { y-=1, _x=x; goto glyph_vertices_skip; }
         get_glyph_bitmap_texcoords(c, &u, &v);
+        // add_vertex(_x,   y,   u+GLYPH_BORDER_WIDTH,   v+GLYPH_BORDER_HEIGHT);
+        // add_vertex(_x,   y+1, u+GLYPH_BORDER_WIDTH,   v+1-GLYPH_BORDER_HEIGHT);
+        // add_vertex(_x+1, y+1, u+1-GLYPH_BORDER_WIDTH, v+1-GLYPH_BORDER_HEIGHT);
+        // add_vertex(_x+1, y,   u+1-GLYPH_BORDER_WIDTH, v+GLYPH_BORDER_HEIGHT);
         add_vertex(_x,   y,   u,   v);
         add_vertex(_x,   y+1, u,   v+1);
         add_vertex(_x+1, y+1, u+1, v+1);
         add_vertex(_x+1, y,   u+1, v);
+
+        glyph_vertices_skip:
         _x += 1+GLYPH_KERNING;
     }
 
-    GLuint vertex_buffer_id;
-    glGenBuffers(1, &vertex_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
     glBufferData(/* type */  GL_ARRAY_BUFFER,
-                 /* size */  sizeof(vertex_buffer),
+                 /* size */  vertex_index*sizeof(vertex_t),
                  /* data */  vertex_buffer,
                  /* usage */ GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+/*}}}*/ }
 
+
+static GLuint create_text_buffer_from_string(const textbox_t *t)
+{ //{{{
+    GLuint vertex_buffer_id;
+    glGenBuffers(1, &vertex_buffer_id);
+    text_to_glyph_vertices(vertex_buffer_id, t->message, t->x, t->y, t->font_size);
     return vertex_buffer_id;
-}
+/*}}}*/ }
 
 
-void graphics_text_init(void) {
+void graphics_text_init(void)
+{ //{{{
     program = glCreateProgram();
     load_shader("app0:" VERTEX_SHADER_PATH, &program);
     load_shader("app0:" FRAGMENT_SHADER_PATH, &program);
@@ -205,31 +269,19 @@ void graphics_text_init(void) {
     glLinkProgram(program);
     glUseProgram(program);
 
-    GLuint u_block_type_colors_location = glGetUniformLocation(program, "u_block_type_colors");
-    // TO-DO: 3 bytes instead of 3 floats, maybe try normalize=true or /255.0 in shader
-    const float u_block_type_colors[TETROMINO_TYPE_QUANTITY][3] = {
-        [TETROMINO_TYPE_NULL] = {1.0, 1.0, 1.0},
-        [TETROMINO_TYPE_I] = {0.2431, 0.8627, 1.0},
-        [TETROMINO_TYPE_O] = {1.0,    0.7750, 0.1216},
-        [TETROMINO_TYPE_T] = {0.7920, 0.1726, 0.6745},
-        [TETROMINO_TYPE_J] = {0.1255, 0.3333, 0.8314},
-        [TETROMINO_TYPE_L] = {1.0,    0.406,  0.029},
-        [TETROMINO_TYPE_S] = {0.4980, 0.8275, 0.0824},
-        [TETROMINO_TYPE_Z] = {0.9333, 0.102,  0.2118},
-    };
-    glUniform3fv(u_block_type_colors_location,
-                 TETROMINO_TYPE_QUANTITY,
-                 (const float*)u_block_type_colors);
-
     load_texture();
 
     glUniform1i(glGetUniformLocation(program, "u_font_bitmap_texture"), 0);
 
     for (unsigned int i = 0; i < textboxes_size; ++i) {
         const textbox_t t = textboxes[i];
-        vertex_buffer_ids[i] = text_to_glyph_vertices(t.message, t.x, t.y);
+        vertex_buffer_ids[i] = create_text_buffer_from_string(&t);
     }
-}
+
+    graphics_text_update_score_number(0);
+    graphics_text_update_cleared_lines_number(0);
+    graphics_text_update_level_number(1);
+/*}}}*/ }
 
 
 void graphics_text_end(void)
@@ -240,7 +292,8 @@ void graphics_text_end(void)
 /*}}}*/ }
 
 
-void graphics_text_draw(void) { //{{{
+void graphics_text_draw(void)
+{ //{{{
     glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0);
@@ -267,15 +320,57 @@ void graphics_text_draw(void) { //{{{
                               /* stride */    sizeof(vertex_t),
                               /* pointer */   (GLvoid*)offsetof(vertex_t,u));
 
-
         glEnable(GL_BLEND); // Enable glyph backgrounds to be rendered invisibly
         glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
         glDisable(GL_BLEND);
     }
-    
+
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
     glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);
 /*}}}*/ }
+
+
+void graphics_text_update_score_number(unsigned int score) {
+    #define SCORE_TEXT_FORMAT "%06d"
+    const textbox_t score_textbox = textboxes[TEXT_SCORE_NUMBER];
+    const size_t score_string_size = snprintf(NULL, 0, SCORE_TEXT_FORMAT, score);
+    char message[score_string_size];
+    snprintf(message, score_string_size + 1, SCORE_TEXT_FORMAT, score);
+    text_to_glyph_vertices(vertex_buffer_ids[TEXT_SCORE_NUMBER],
+                           (const char*)message,
+                           score_textbox.x,
+                           score_textbox.y,
+                           score_textbox.font_size);
+}
+
+
+void graphics_text_update_cleared_lines_number(unsigned short lines) {
+    #define LINES_TEXT_FORMAT "%03d"
+    const textbox_t lines_textbox = textboxes[TEXT_LINES_NUMBER];
+    const size_t lines_string_size = snprintf(NULL, 0, LINES_TEXT_FORMAT, lines);
+    char message[lines_string_size];
+    snprintf(message, lines_string_size + 1, LINES_TEXT_FORMAT, lines);
+
+    text_to_glyph_vertices(vertex_buffer_ids[TEXT_LINES_NUMBER],
+                           (const char*)message,
+                           lines_textbox.x,
+                           lines_textbox.y,
+                           lines_textbox.font_size);   
+}
+
+
+void graphics_text_update_level_number(unsigned char level) {
+    #define LEVEL_TEXT_FORMAT "%02d"
+    const textbox_t level_textbox = textboxes[TEXT_LEVEL_NUMBER];
+    const size_t level_string_size = snprintf(NULL, 0, LEVEL_TEXT_FORMAT, level);
+    char message[level_string_size];
+    snprintf(message, level_string_size + 1, LEVEL_TEXT_FORMAT, level);
+    text_to_glyph_vertices(vertex_buffer_ids[TEXT_LEVEL_NUMBER],
+                           (const char*)message,
+                           level_textbox.x,
+                           level_textbox.y,
+                           level_textbox.font_size);
+}
