@@ -10,6 +10,7 @@
 #include "../graphics/tetromino.h"
 #include "../graphics/playfield.h"
 
+
 void animate_line_kill(uint8_t Y)
 {
    return;
@@ -172,10 +173,8 @@ void engine_spawn_tetromino(tetromino_type_t type)
     X = PLAYFIELD_SPAWN_X;
     Y = PLAYFIELD_SPAWN_Y;
     if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) {
-        --Y;
-        if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y)) {
-            engine_state = ENGINE_STATE_LOSE;  // Game is over if there's no room for a new piece.
-        }
+        falling_tetromino.type = TETROMINO_TYPE_NULL;   
+        engine_state = ENGINE_STATE_LOSE;  // Game is over if there's no room for a new piece.
     }
     engine_update_mesh_positions();
 /*}}}*/}
@@ -244,11 +243,13 @@ void engine_hard_drop_tetromino()
 
 void engine_soft_drop_tetromino()
 { //{{{
-    if (!engine_move_falling_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
-        timer_set_current_time(&drop_lock_timer);
+    if (!engine_move_falling_tetromino(0,1)) {
+        if (timer_is_null(&drop_lock_timer)) timer_set_current_time(&drop_lock_timer);
     }
-    timer_set_current_time(&gravity_timer); // Reset gravity timer to prevent double-down
-    scoring_add_soft_drop();
+    else {
+        timer_set_current_time(&gravity_timer); // Reset gravity timer to prevent double-down
+        scoring_add_soft_drop();
+    }
 /*}}}*/ }
 
 

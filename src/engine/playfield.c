@@ -6,7 +6,7 @@ const uint8_t PLAYFIELD_WIDTH_1 = PLAYFIELD_WIDTH - 1, PLAYFIELD_HEIGHT_1 = PLAY
               PLAYFIELD_WIDTH1  = PLAYFIELD_WIDTH + 1, PLAYFIELD_HEIGHT1  = PLAYFIELD_HEIGHT + 1;
 
 // static const uint8_t X_MAX = PLAYFIELD_WIDTH+2;
-static int8_t PLAYFIELD[PLAYFIELD_HEIGHT][PLAYFIELD_WIDTH]={{0}};
+static int8_t PLAYFIELD[PLAYFIELD_HEIGHT+1][PLAYFIELD_WIDTH]={{0}};
 
 
 playfield_view_t playfield_view(void) { return (playfield_view_t)PLAYFIELD; }
