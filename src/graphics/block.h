@@ -26,6 +26,7 @@ typedef struct { uint8_t x, y, z;
 void graphics_block_init(void);
 void graphics_block_end(void);
 void graphics_block_set_model_matrix(const float model_matrix[16]);
+void graphics_block_set_lighting_position(const float position[3]);
 void graphics_block_draw(GLuint vertex_buffer_id);
 void graphics_block_add_block_to_vertex_buffer(uint8_t x,
                                                uint8_t y,

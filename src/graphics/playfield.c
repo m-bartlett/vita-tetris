@@ -11,9 +11,10 @@
 // 4 vertices for each face of 5 visible faces for each block in the playfield grid
 #define VERTEX_COUNT_MAX (4*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
 
-
 static GLuint vertex_buffer_id;
 static graphics_block_vertex_t vertex_buffer[VERTEX_COUNT_MAX]={{0}};
+static float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
+
 
 void graphics_playfield_update_mesh(void)
 { //{{{
@@ -67,12 +68,16 @@ void graphics_playfield_end(void)
 /*}}}*/ }
 
 
-static const float model_matrix[16] = { [0]=1, [5]=1, [10]=1, [15]=1 };
 void graphics_playfield_draw(void)
 { //{{{
     graphics_block_set_model_matrix(model_matrix);
     graphics_block_draw(vertex_buffer_id);
 /*}}}*/ }
+
+
+void graphics_playfield_set_model_matrix(float buffer[16]) {
+    for (uint8_t i = 0; i < 16; ++i) model_matrix[i] = buffer[i];
+}
 
 
 void graphics_playfield_animate_line_kill(uint8_t Y) {

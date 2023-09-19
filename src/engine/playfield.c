@@ -74,7 +74,6 @@ void playfield_clear_line(uint8_t Y)
 /*}}}*/ }
 
 
-
 uint8_t playfield_clear_lines(void (*callback)(uint8_t))
 { //{{{
     uint8_t lines = 0;

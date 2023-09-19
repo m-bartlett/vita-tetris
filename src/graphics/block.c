@@ -129,6 +129,12 @@ void graphics_block_set_model_matrix(const float model_matrix[16]) {
 }
 
 
+void graphics_block_set_lighting_position(const float position[3]) {
+    for (uint8_t i = 0; i < 3; ++i) u_light_position[i] = position[i];
+    glUniform3fv(u_light_position_location, 1, u_light_position);
+}
+
+
 void graphics_block_draw(GLuint vertex_buffer_id)
 { //{{{
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);

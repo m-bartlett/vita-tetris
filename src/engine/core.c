@@ -6,6 +6,7 @@
 #include "scoring.h"
 #include "../lib/timer.h"
 #include "../lib/shuffle7.h"
+#include "../lib/linalg.h"
 #include "../graphics/core.h"
 #include "../graphics/tetromino.h"
 #include "../graphics/playfield.h"
@@ -46,14 +47,12 @@ static uint32_t gravity_delay = ENGINE_GRAVITY_INITIAL_DELAY_MICROSECONDS;
 static vita_timestamp_t drop_lock_timer = {0};
 static vita_timestamp_t gravity_timer;
 
-/*
-    TO-DO: Update timer code to not assign by reference
-*/
-
 static void engine_check_drop_lock();
 static void engine_update_gravity();
 
-static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
+static inline void engine_input_callback_start() {
+    engine_state = ENGINE_STATE_LOSE;
+}
 
 static inline void engine_input_callback_right() {
     if (engine_move_falling_tetromino(1,0)) drop_lock_timer=0;
@@ -66,6 +65,23 @@ static inline void engine_input_callback_left() {
 static inline void engine_update_mesh_positions() {
     graphics_tetromino_position_falling_tetromino(X, Y);
     graphics_tetromino_position_hard_drop_phantom(engine_update_hard_drop_y());
+}
+
+static inline void engine_input_callback_analog_right(uint8_t x, uint8_t y) {
+    float model_matrix[16] = {[0]=1, [5]=1, [10]=1, [15]=1};
+    const float _x=((float)x-127.f)/127.f, _y=((float)y-127.f)/127.f;
+    translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
+    rotate(model_matrix, M_PI/8*_x, 0, 1, 0);
+    rotate(model_matrix, M_PI/8*_y, 1, 0, 0);
+    translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
+    graphics_playfield_set_model_matrix(model_matrix);
+}
+
+static inline void engine_input_callback_analog_left(uint8_t x, uint8_t y) {
+    const float _x = ((float)x-127.f)/127.f*3,
+                _y = ((float)y-127.f)/127.f*-3,
+                _z = 5;
+    graphics_block_set_lighting_position((const float[]){_x, _y, _z});
 }
 
 
@@ -87,6 +103,9 @@ void engine_init()
 
     input_set_button_callback(start,    engine_input_callback_start);
 
+    input_set_analog_callback(analog_right, engine_input_callback_analog_right);
+    input_set_analog_callback(analog_left,  engine_input_callback_analog_left);
+    
     bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     gravity_timer=timer_get_current_time();
