@@ -60,8 +60,15 @@ static void engine_check_drop_lock();
 static void engine_update_gravity();
 
 static inline void engine_input_callback_start() {engine_state = ENGINE_STATE_LOSE;}
-static inline void engine_input_callback_right() {engine_move_falling_tetromino(1,0);}
-static inline void engine_input_callback_left() {engine_move_falling_tetromino(-1,0);}
+
+static inline void engine_input_callback_right() {
+    if (engine_move_falling_tetromino(1,0)) drop_lock_timer=0;
+}
+
+static inline void engine_input_callback_left() {
+    if (engine_move_falling_tetromino(-1,0)) drop_lock_timer=0;
+}
+
 static inline void engine_update_mesh_positions() {
     graphics_tetromino_position_falling_tetromino(X, Y);
     graphics_tetromino_position_hard_drop_phantom(engine_update_hard_drop_y());
@@ -88,7 +95,7 @@ void engine_init()
 
     bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
-    timer_set_current_time(&gravity_timer);
+    gravity_timer=timer_get_current_time();
     engine_state = ENGINE_STATE_RUNNING;
 /*}}}*/ }
 
@@ -103,15 +110,15 @@ void engine_game_loop(void)
     while(engine_state == ENGINE_STATE_RUNNING) {
         elapsed_us=0;
         remaining_us=0;
-        timer_set_current_time(&start_time);
+        start_time=timer_get_current_time();
 
         input_read_and_run_callbacks();
         engine_update_gravity();
         engine_check_drop_lock();
         graphics_draw_game();
 
-        timer_set_current_time(&end_time);
-        elapsed_us = timer_get_elapsed_microseconds(&start_time, &end_time);
+        end_time=timer_get_current_time();
+        elapsed_us = timer_get_elapsed_microseconds(start_time, end_time);
         remaining_us = ENGINE_MICROSECONDS_PER_FRAME - elapsed_us;
         if (remaining_us > 0) sceKernelDelayThread(remaining_us);
     }
@@ -129,12 +136,12 @@ void engine_game_loop(void)
 
 static void engine_check_drop_lock()
 { //{{{
-    if (!timer_is_null(&drop_lock_timer)) {
+    if (!drop_lock_timer==0) {
         vita_timestamp_t now_time;
-        timer_set_current_time(&now_time);
-        uint32_t elapsed_us = timer_get_elapsed_microseconds(&drop_lock_timer, &now_time);
+        now_time=timer_get_current_time();
+        uint32_t elapsed_us = timer_get_elapsed_microseconds(drop_lock_timer, now_time);
         if (elapsed_us >= ENGINE_DROP_LOCK_DELAY_MICROSECONDS) {
-            timer_unset(&drop_lock_timer);
+            drop_lock_timer=0;
             if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y+1)) {
                 engine_place_tetromino_at_xy(X,Y);   // Lock the piece if it cannot proceed downward
                 graphics_draw_game();
@@ -147,11 +154,11 @@ static void engine_check_drop_lock()
 static void engine_update_gravity()
 { //{{{
     vita_timestamp_t now_time; 
-    timer_set_current_time(&now_time);
+    now_time=timer_get_current_time();
 
-    uint32_t elapsed_us = timer_get_elapsed_microseconds(&gravity_timer, &now_time);
+    uint32_t elapsed_us = timer_get_elapsed_microseconds(gravity_timer, now_time);
     if (elapsed_us >= gravity_delay) {
-        if (!engine_move_falling_tetromino(0,1) && timer_is_null(&drop_lock_timer)) {
+        if (!engine_move_falling_tetromino(0,1) && drop_lock_timer==0) {
             drop_lock_timer = now_time;
         }
         gravity_timer = now_time;
@@ -244,10 +251,10 @@ void engine_hard_drop_tetromino()
 void engine_soft_drop_tetromino()
 { //{{{
     if (!engine_move_falling_tetromino(0,1)) {
-        if (timer_is_null(&drop_lock_timer)) timer_set_current_time(&drop_lock_timer);
+        if (drop_lock_timer==0) drop_lock_timer=timer_get_current_time();
     }
     else {
-        timer_set_current_time(&gravity_timer); // Reset gravity timer to prevent double-down
+        gravity_timer=timer_get_current_time(); // Reset gravity timer to prevent double-down
         scoring_add_soft_drop();
     }
 /*}}}*/ }
@@ -317,7 +324,7 @@ void engine_rotate_falling_tetromino_clockwise()  // Rotation with wallkicks
 
     valid_exit:
         engine_update_mesh_positions();
-        timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
+        drop_lock_timer=0;  // valid rotations restart drop-lock timer
         return;
 
     invalid_exit:
@@ -357,7 +364,7 @@ void engine_rotate_falling_tetromino_counterclockwise()  // Rotation with wallki
 
 valid_exit:
     engine_update_mesh_positions();
-    timer_unset(&drop_lock_timer);  // valid rotations restart drop-lock timer
+    drop_lock_timer=0;  // valid rotations restart drop-lock timer
     return;
 
 invalid_exit:
