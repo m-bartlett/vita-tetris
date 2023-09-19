@@ -115,3 +115,9 @@ void playfield_set(const char* cells, const size_t size, const size_t offset)
         PLAYFIELD[y][x] = cells[i_c];
     }
 /*}}}*/ }
+
+
+void playfield_set_cell(const uint8_t C, const uint8_t X, const uint8_t Y)
+{ //{{{
+    PLAYFIELD[Y][X] = C;
+/*}}}*/ }

@@ -11,8 +11,6 @@
 #include "../engine/core.h"
 #include "../engine/scoring.h"
 
-#define FRAME_DELAY_us 15000
-
 /*
 static const uint8_t GAME_OVER_PLAYFIELD[] = {
     TETROMINO_TYPE_Z,TETROMINO_TYPE_Z,TETROMINO_TYPE_Z,0,0,0,0,0,0,0,
@@ -132,28 +130,24 @@ static inline void graphics_core_draw_score()
 }
 
 
-void graphics_draw_game()
+void graphics_core_draw_HUD()
 {  
    graphics_background_draw(); // instead of using glClear
    graphics_border_draw();
    graphics_text_draw();
-   graphics_playfield_draw();
    graphics_core_draw_held_tetromino();
    graphics_core_draw_queued_tetrominos();
-   graphics_core_draw_falling_tetromino();
-   graphics_core_draw_hard_drop_phantom();
-
    graphics_core_draw_score();
-
-   vglSwapBuffers(GL_FALSE);
-   return;
 }
 
 
-void graphics_animate_line_kill(uint8_t Y)
-{
-   // TO-DO animate the line kill
-   graphics_playfield_update_mesh();
+void graphics_draw_game()
+{  
+   graphics_core_draw_HUD();
+   graphics_playfield_draw();
+   graphics_core_draw_falling_tetromino();
+   graphics_core_draw_hard_drop_phantom();
+   vglSwapBuffers(GL_FALSE);
    return;
 }
 

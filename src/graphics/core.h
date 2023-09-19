@@ -17,8 +17,8 @@
 void load_shader(const char *shader_path, GLuint *program);
 void graphics_init();
 void graphics_end();
+void graphics_core_draw_HUD();
 void graphics_draw_game();
-void graphics_animate_line_kill(uint8_t Y);
 void graphics_animate_game_over();
 
 

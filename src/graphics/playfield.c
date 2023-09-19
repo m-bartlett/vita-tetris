@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <vitasdk.h>
 #include "core.h"
 #include "block.h"
 #include "playfield.h"
@@ -70,3 +71,15 @@ void graphics_playfield_draw(void)
     graphics_block_set_model_matrix(model_matrix);
     graphics_block_draw(vertex_buffer_id);
 /*}}}*/ }
+
+
+void graphics_playfield_animate_line_kill(uint8_t Y) {
+    for (uint8_t x = 0; x < PLAYFIELD_WIDTH; ++x) {
+        playfield_set_cell(0, x, Y);
+        graphics_playfield_update_mesh();
+        graphics_core_draw_HUD();
+        graphics_playfield_draw();
+        vglSwapBuffers(GL_FALSE);
+        sceKernelDelayThread(PLAYFIELD_LINE_KILL_ANIMATION_FRAME_DELAY_MICROSECONDS);
+    }
+}

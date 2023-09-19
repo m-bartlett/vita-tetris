@@ -11,12 +11,6 @@
 #include "../graphics/playfield.h"
 
 
-void animate_line_kill(uint8_t Y)
-{
-   return;
-}
-
-
 void animate_game_over()
 {
    return;
@@ -279,8 +273,7 @@ void engine_swap_held_tetromino_with_active(void)
 void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
 { //{{falling_{
     playfield_place_tetromino(&falling_tetromino, x, y);
-    graphics_playfield_update_mesh();
-    uint8_t lines = playfield_clear_lines(graphics_animate_line_kill);
+    uint8_t lines = playfield_clear_lines(graphics_playfield_animate_line_kill);
     uint8_t new_level = scoring_add_line_clears(lines);
     if (new_level) {
         gravity_delay = (ENGINE_GRAVITY_INITIAL_DELAY_MICROSECONDS 
@@ -290,6 +283,7 @@ void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
     }
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     tetromino_swapped = false;  // Reset swappability 
+    graphics_playfield_update_mesh();
 /*falling_}}}*/}
 
 
