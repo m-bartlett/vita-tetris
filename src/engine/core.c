@@ -210,7 +210,7 @@ const int8_t engine_update_hard_drop_y()
     Y_hard_drop = -1;
     int8_t _Y = Y;
     bool previous_valid = false;
-    while(_Y < PLAYFIELD_HEIGHT1+2) {
+    while(_Y < PLAYFIELD_HEIGHT+3) {
         bool current_valid = playfield_validate_tetromino_placement(&falling_tetromino, X, _Y);
         if (previous_valid && (!current_valid)) {
             if(_Y > Y) {

@@ -194,7 +194,7 @@ static struct { int8_t x, y; } falling_tetromino_position = {.x=0, .y=0};
 void graphics_tetromino_position_falling_tetromino(uint8_t x, uint8_t y)
 {
     falling_tetromino_position.x = x-3;
-    falling_tetromino_position.y = PLAYFIELD_HEIGHT_1-y;
+    falling_tetromino_position.y = PLAYFIELD_HEIGHT-1-y;
 }
 
 void graphics_tetromino_draw_falling_tetromino(const tetromino_t *t)
@@ -209,7 +209,7 @@ void graphics_tetromino_draw_falling_tetromino(const tetromino_t *t)
 static int8_t hard_drop_phantom_y = 0;
 void graphics_tetromino_position_hard_drop_phantom(int8_t y)
 {
-    hard_drop_phantom_y = PLAYFIELD_HEIGHT_1-y;
+    hard_drop_phantom_y = PLAYFIELD_HEIGHT-1-y;
 }
 
 void graphics_tetromino_draw_hard_drop_phantom(const tetromino_t *t)
