@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_PLAYFIELD_H
 #define GRAPHICS_PLAYFIELD_H
 
-#define PLAYFIELD_LINE_KILL_ANIMATION_FRAME_DELAY_MICROSECONDS 30000
+#define PLAYFIELD_LINE_KILL_ANIMATION_FRAME_DELAY_MICROSECONDS 32500
 
 void graphics_playfield_init(void);
 void graphics_playfield_end(void);

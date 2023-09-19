@@ -5,6 +5,8 @@
 #include "playfield.h"
 #include "../engine/playfield.h"
 #include "../engine/tetromino.h"
+#include "../lib/shuffle.h"
+
 
 // 4 vertices for each face of 5 visible faces for each block in the playfield grid
 #define VERTEX_COUNT_MAX (4*5*PLAYFIELD_HEIGHT*PLAYFIELD_WIDTH)
@@ -74,8 +76,12 @@ void graphics_playfield_draw(void)
 
 
 void graphics_playfield_animate_line_kill(uint8_t Y) {
+    uint8_t row_indices[PLAYFIELD_WIDTH];
+    for (uint8_t x = 0; x < PLAYFIELD_WIDTH; ++x) row_indices[x]=x;
+    shuffle(row_indices, sizeof(row_indices[0]), sizeof(row_indices));
+
     for (uint8_t x = 0; x < PLAYFIELD_WIDTH; ++x) {
-        playfield_set_cell(0, x, Y);
+        playfield_set_cell(0, row_indices[x], Y);
         graphics_playfield_update_mesh();
         graphics_core_draw_HUD();
         graphics_playfield_draw();

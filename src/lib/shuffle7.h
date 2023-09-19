@@ -1,5 +1,5 @@
-#ifndef SHUFFLE_H
-#define SHUFFLE_H
+#ifndef SHUFFLE7_H
+#define SHUFFLE7_H
 
 #include <stdint.h>
 
