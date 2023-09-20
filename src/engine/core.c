@@ -10,6 +10,7 @@
 #include "../graphics/core.h"
 #include "../graphics/tetromino.h"
 #include "../graphics/playfield.h"
+#include "../graphics/text.h"
 
 
 void animate_game_over()
@@ -50,8 +51,8 @@ static vita_timestamp_t gravity_timer;
 static void engine_check_drop_lock();
 static void engine_update_gravity();
 
-static inline void engine_input_callback_start() {
-    engine_state = ENGINE_STATE_LOSE;
+static inline void engine_input_callback_pause() {
+    engine_state = ENGINE_STATE_PAUSED;
 }
 
 static inline void engine_input_callback_right() {
@@ -101,7 +102,7 @@ void engine_init()
     input_set_button_callback(square,   engine_rotate_falling_tetromino_clockwise);
     input_set_button_callback(cross,    engine_rotate_falling_tetromino_counterclockwise);
 
-    input_set_button_callback(start,    engine_input_callback_start);
+    input_set_button_callback(start,    engine_input_callback_pause);
 
     input_set_analog_callback(analog_right, engine_input_callback_analog_right);
     input_set_analog_callback(analog_left,  engine_input_callback_analog_left);
@@ -113,13 +114,33 @@ void engine_init()
 /*}}}*/ }
 
 
+void engine_main_loop(void) {
+    while(engine_state != ENGINE_STATE_EXIT) {
+        switch(engine_state) {
+            case ENGINE_STATE_RUNNING:
+                engine_game_loop();
+                break;
+            case ENGINE_STATE_PAUSED:
+                engine_pause_loop();
+                break;
+            default:
+            case ENGINE_STATE_LOSE:
+                graphics_animate_game_over();
+                return;
+            case ENGINE_STATE_WIN:
+                break;
+        }
+    }
+}
+
+
 void engine_game_loop(void)
 { //{{{
     uint32_t elapsed_us=0;
     int32_t remaining_us=0;
     uint32_t loop_timer;
     vita_timestamp_t start_time, end_time;
-
+    
     while(engine_state == ENGINE_STATE_RUNNING) {
         elapsed_us=0;
         remaining_us=0;
@@ -135,16 +156,31 @@ void engine_game_loop(void)
         remaining_us = ENGINE_MICROSECONDS_PER_FRAME - elapsed_us;
         if (remaining_us > 0) sceKernelDelayThread(remaining_us);
     }
-
-    switch(engine_state) {
-        default:
-        case ENGINE_STATE_LOSE:
-            graphics_animate_game_over();
-            return;
-        case ENGINE_STATE_WIN:
-            break;
-    }
+        
 /*}}}*/ }
+
+void engine_pause_loop(void) {
+    SceCtrlData input;
+
+    for (int i = 0; i < 4; ++i) { // Update all buffers in rotation, required for input updates
+        sceKernelDelayThread(100000);
+        graphics_core_draw_HUD();
+        graphics_text_draw_ad_hoc("PAUSED", -10.f/3.f, -0.2, 4.0);
+        sceCtrlPeekBufferPositive(0, &input, 1);
+        vglSwapBuffers(GL_FALSE);
+    }
+
+    while(engine_state == ENGINE_STATE_PAUSED) {
+        vglSwapBuffers(GL_FALSE);
+        sceCtrlPeekBufferPositive(0, &input, 1);
+        if (input.buttons & INPUT_BITMASK_start) {
+            engine_state = ENGINE_STATE_RUNNING;
+            break;
+        }
+        sceKernelDelayThread(50000);
+    }
+    sceKernelDelayThread(100000);
+}
 
 
 static void engine_check_drop_lock()

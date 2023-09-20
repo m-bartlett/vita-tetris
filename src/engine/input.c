@@ -1,4 +1,3 @@
-#include <math.h>
 #include <vitasdk.h>
 #include "input.h"
 

@@ -4,6 +4,10 @@
 void graphics_text_init(void); 
 void graphics_text_end(void);
 void graphics_text_draw(void);
+void graphics_text_draw_ad_hoc(const char* message,
+                               const float x,
+                               const float y,
+                               const float font_size);
 void graphics_text_update_score_number(unsigned int score);
 void graphics_text_update_cleared_lines_number(unsigned short lines);
 void graphics_text_update_level_number(unsigned char level);

@@ -292,45 +292,63 @@ void graphics_text_end(void)
 /*}}}*/ }
 
 
+static void draw_text_buffer(GLuint vertex_buffer_id) {
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    unsigned int vertex_buffer_size;
+    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &vertex_buffer_size);
+    vertex_buffer_size /= sizeof(vertex_t);
+
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION, /* a.k.a. index */
+                          /* dimension */ 2,                                  /* a.k.a. size */
+                          /* type */      GL_FLOAT,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(vertex_t,x));
+
+    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
+                          /* dimension */ 2,
+                          /* type */      GL_FLOAT,
+                          /* normalize */ GL_FALSE,
+                          /* stride */    sizeof(vertex_t),
+                          /* pointer */   (GLvoid*)offsetof(vertex_t,u));
+
+    glEnable(GL_BLEND); // Enable glyph backgrounds to be rendered invisibly
+    glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
+    glDisable(GL_BLEND);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
+    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+
 void graphics_text_draw(void)
 { //{{{
     glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0);
-
     for (int i = 0; i < textboxes_size; ++i) {
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ids[i]);
-        unsigned int vertex_buffer_size;
-        glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &vertex_buffer_size);
-        vertex_buffer_size /= sizeof(vertex_t);
-
-        glEnableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-        glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_POSITION_LOCATION, /* a.k.a. index */
-                              /* dimension */ 2,                                  /* a.k.a. size */
-                              /* type */      GL_FLOAT,
-                              /* normalize */ GL_FALSE,
-                              /* stride */    sizeof(vertex_t),
-                              /* pointer */   (GLvoid*)offsetof(vertex_t,x));
-
-        glEnableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-        glVertexAttribPointer(/* location */  VERTEX_ATTRIBUTE_TEXCOORD_LOCATION,
-                              /* dimension */ 2,
-                              /* type */      GL_FLOAT,
-                              /* normalize */ GL_FALSE,
-                              /* stride */    sizeof(vertex_t),
-                              /* pointer */   (GLvoid*)offsetof(vertex_t,u));
-
-        glEnable(GL_BLEND); // Enable glyph backgrounds to be rendered invisibly
-        glDrawArrays(/*mode=*/GL_QUADS, /*first=*/0, /*count=*/vertex_buffer_size);
-        glDisable(GL_BLEND);
+        draw_text_buffer(vertex_buffer_ids[i]);
     }
-
-    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_POSITION_LOCATION);
-    glDisableVertexAttribArray(VERTEX_ATTRIBUTE_TEXCOORD_LOCATION);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);
 /*}}}*/ }
+
+
+void graphics_text_draw_ad_hoc(const char* message,
+                               const float x,
+                               const float y,
+                               const float font_size) {
+    /* Converts the given text to a temporary buffer and renders it one time. */
+    const textbox_t t = {message, x, y, font_size};
+    const GLuint vertex_buffer_id = create_text_buffer_from_string(&t);
+    glUseProgram(program);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glActiveTexture(GL_TEXTURE0);
+    draw_text_buffer(vertex_buffer_id);
+    glUseProgram(0);
+    glDeleteBuffers(/*buffer_quantity=*/1, &vertex_buffer_id);
+}
 
 
 void graphics_text_update_score_number(unsigned int score) {

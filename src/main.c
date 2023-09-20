@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     engine_init();
     graphics_init();
 
-    engine_game_loop();
+    engine_main_loop();
 
     graphics_end();
     engine_end();
