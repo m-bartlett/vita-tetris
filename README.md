@@ -4,6 +4,29 @@ A Tetris-like homebrew game with 3D graphics for Playstation Vita.
 
 This is written completely from scratch in C using the [vitaGL library](https://github.com/Rinnegatamante/vitaGL/) by [Rinnegatamante](https://github.com/Rinnegatamante).
 
+<p align="center">
+  <span>
+    <img
+      width="250px"
+      alt="Screenshot 1"
+      title="Screenshot 1"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/91056539-ab7c-4868-a940-d249f4ff0a6e"
+    >
+    <img
+      width="250px"
+      alt="Screenshot 2"
+      title="Screenshot 2"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/0bfa00f0-bf30-42ad-b09a-1337ec11ce01"
+    >
+    <img
+      width="250px"
+      alt="Screenshot 3"
+      title="Screenshot 3"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/d672dd5b-e750-40dd-986f-22c3ab2dd7c2"
+    >
+  </span>
+</p>
+
 ## Install
 
 Simply download the [latest release .vpk](https://github.com/m-bartlett/vita-tetris/releases/latest/download/ViTetris.vpk) to your Vita and install by your preferred means. You should see a ViTetris bubble on the homescreen.
