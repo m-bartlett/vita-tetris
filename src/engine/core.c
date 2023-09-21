@@ -63,19 +63,25 @@ static inline void engine_update_mesh_positions() {
 }
 
 static inline void engine_input_callback_analog_right(uint8_t x, uint8_t y) {
+    enum _ {ANALOG_DEADZONE=10};
     float model_matrix[16] = {[0]=1, [5]=1, [10]=1, [15]=1};
-    const float _x=((float)x-127.f)/127.f, _y=((float)y-127.f)/127.f;
+    float _x=((float)x)-127.f, _y=((float)y)-127.f;
+    if (fabs(_x) < ANALOG_DEADZONE) _x = 0.f; else _x = M_PI/8*_x/127.f;
+    if (fabs(_y) < ANALOG_DEADZONE) _y = 0.f; else _y = M_PI/8*_y/127.f;
+
     translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
-    rotate(model_matrix, M_PI/8*_x, 0, 1, 0);
-    rotate(model_matrix, M_PI/8*_y, 1, 0, 0);
+    rotate(model_matrix, _x, 0, 1, 0);
+    rotate(model_matrix, _y, 1, 0, 0);
     translate(model_matrix, -PLAYFIELD_WIDTH/2, -PLAYFIELD_HEIGHT/2, 0);
     graphics_playfield_set_model_matrix(model_matrix);
 }
 
 static inline void engine_input_callback_analog_left(uint8_t x, uint8_t y) {
-    const float _x = ((float)x-127.f)/127.f*3,
-                _y = ((float)y-127.f)/127.f*-3,
-                _z = 5;
+    enum _ {ANALOG_DEADZONE=10};
+    float _x=((float)x)-127.f, _y=((float)y)-127.f;
+    if (fabs(_x) < ANALOG_DEADZONE) _x = 0.f; else _x = ((float)x-127.f)/127.f*3;
+    if (fabs(_y) < ANALOG_DEADZONE) _y = 0.f; else _y = ((float)y-127.f)/127.f*-3;
+    const float _z = 5;
     graphics_block_set_lighting_position((const float[]){_x, _y, _z});
 }
 
