@@ -200,7 +200,9 @@ void engine_replay_loop(void) {
     for (int i = 0; i < 4; ++i) { // Update all buffers in rotation, required for input updates
         sceKernelDelayThread(100000);
         graphics_core_draw_HUD();
-        graphics_text_draw_ad_hoc("PRESS START \n    TO\nPLAY AGAIN",-19/3.f, -0.2, 2.0);
+        graphics_text_draw_ad_hoc("PRESS START",-19/3.f, 0.5, 2.0);
+        graphics_text_draw_ad_hoc("TO", -4/3.f, -1.5, 2.0);
+        graphics_text_draw_ad_hoc("PLAY AGAIN",-17/3.f, -3.5, 2.0);
         sceCtrlPeekBufferPositive(0, &input, 1);
         vglSwapBuffers(GL_FALSE);
     }
