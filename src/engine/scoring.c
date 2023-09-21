@@ -20,6 +20,18 @@ static inline void add_score(unsigned int x) {
     graphics_text_update_score_number(score);
 }
 
+
+void scoring_init() {
+    cleared_lines = 0;
+    total_cleared_lines = 0;
+    level = 0;
+    score = 0;
+    graphics_text_update_score_number(score);
+    graphics_text_update_cleared_lines_number(total_cleared_lines);
+    graphics_text_update_level_number(level+1);
+}
+
+
 /* https://tetris.fandom.com/wiki/Scoring?so=search#Guideline_scoring_system */
 const uint8_t scoring_add_line_clears(uint8_t lines)
 {
@@ -35,6 +47,7 @@ const uint8_t scoring_add_line_clears(uint8_t lines)
                 graphics_text_update_level_number(level+1);
                 return level;
             }
+            else return SCORING_MAX_LEVEL;
         }
     }
     return 0;

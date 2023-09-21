@@ -221,10 +221,10 @@ static void text_to_glyph_vertices(GLuint vertex_buffer_id,
         }
 
     float _x = x;
-    for (unsigned int i = 0; i < message_length; ++i) {
+    for (unsigned int i = 0; i < message_length; ++i, _x += 1+GLYPH_KERNING) {
         char c = message[i];
-        if (c == ' ') goto glyph_vertices_skip;
-        else if (c == '\n') { y-=1, _x=x; goto glyph_vertices_skip; }
+        if (c == ' ') continue;
+        else if (c == '\n') { y-=1, _x=x; continue; }
         get_glyph_bitmap_texcoords(c, &u, &v);
         // add_vertex(_x,   y,   u+GLYPH_BORDER_WIDTH,   v+GLYPH_BORDER_HEIGHT);
         // add_vertex(_x,   y+1, u+GLYPH_BORDER_WIDTH,   v+1-GLYPH_BORDER_HEIGHT);
@@ -234,9 +234,6 @@ static void text_to_glyph_vertices(GLuint vertex_buffer_id,
         add_vertex(_x,   y+1, u,   v+1);
         add_vertex(_x+1, y+1, u+1, v+1);
         add_vertex(_x+1, y,   u+1, v);
-
-        glyph_vertices_skip:
-        _x += 1+GLYPH_KERNING;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);

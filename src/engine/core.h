@@ -34,6 +34,7 @@ void engine_end();
 void engine_main_loop(void);
 void engine_game_loop(void);
 void engine_pause_loop(void);
+void engine_replay_loop(void);
 void engine_spawn_tetromino(tetromino_type_t type);
 tetromino_type_t engine_pop_queued_tetromino();
 bool engine_move_falling_tetromino(int8_t dx, uint8_t dy);

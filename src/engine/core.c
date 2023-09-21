@@ -13,13 +13,7 @@
 #include "../graphics/text.h"
 
 
-void animate_game_over()
-{
-   return;
-}
-
-/*  TO-DO: move rotation system to separate files
-    Wallkick values for the Super Rotation System
+/*  Wallkick values for the Super Rotation System
     https://tetris.fandom.com/wiki/SRS#Basic_Rotation 
 
     NOTE: the sign of the Y value is opposite to what the Tetris wiki uses,
@@ -107,10 +101,16 @@ void engine_init()
     input_set_analog_callback(analog_right, engine_input_callback_analog_right);
     input_set_analog_callback(analog_left,  engine_input_callback_analog_left);
     
+    gravity_delay = ENGINE_GRAVITY_INITIAL_DELAY_MICROSECONDS;
+    drop_lock_timer = 0;
+    Y_hard_drop = -1;
+    tetromino_swapped = false;
     bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
+    scoring_init();
     gravity_timer=timer_get_current_time();
     engine_state = ENGINE_STATE_RUNNING;
+    gravity_timer=timer_get_current_time();
 /*}}}*/ }
 
 
@@ -125,9 +125,14 @@ void engine_main_loop(void) {
                 break;
             default:
             case ENGINE_STATE_LOSE:
-                graphics_animate_game_over();
-                return;
+                graphics_core_animate_game_over();
+                sceKernelDelayThread(1500000);
+                engine_replay_loop();
+                break;
             case ENGINE_STATE_WIN:
+                graphics_core_animate_game_win();
+                sceKernelDelayThread(1500000);
+                engine_replay_loop();
                 break;
         }
     }
@@ -149,7 +154,7 @@ void engine_game_loop(void)
         input_read_and_run_callbacks();
         engine_update_gravity();
         engine_check_drop_lock();
-        graphics_draw_game();
+        graphics_core_draw_game();
 
         end_time=timer_get_current_time();
         elapsed_us = timer_get_elapsed_microseconds(start_time, end_time);
@@ -173,13 +178,44 @@ void engine_pause_loop(void) {
     while(engine_state == ENGINE_STATE_PAUSED) {
         vglSwapBuffers(GL_FALSE);
         sceCtrlPeekBufferPositive(0, &input, 1);
-        if (input.buttons & INPUT_BITMASK_start) {
+        if (input.buttons & SCE_CTRL_START) {
             engine_state = ENGINE_STATE_RUNNING;
             break;
         }
         sceKernelDelayThread(50000);
     }
     sceKernelDelayThread(100000);
+}
+
+
+void engine_replay_loop(void) {
+    SceCtrlData input;
+
+    for (int i = 0; i < 4; ++i) { // Update all buffers in rotation, required for input updates
+        sceKernelDelayThread(100000);
+        graphics_core_draw_HUD();
+        graphics_text_draw_ad_hoc("PRESS START \n    TO\nPLAY AGAIN",-19/3.f, -0.2, 2.0);
+        sceCtrlPeekBufferPositive(0, &input, 1);
+        vglSwapBuffers(GL_FALSE);
+    }
+
+    while(engine_state != ENGINE_STATE_RUNNING) {
+        vglSwapBuffers(GL_FALSE);
+        sceCtrlPeekBufferPositive(0, &input, 1);
+        if (input.buttons & SCE_CTRL_START) {
+            playfield_clear();
+            graphics_playfield_update_mesh();
+            engine_init();
+            engine_state = ENGINE_STATE_RUNNING;
+            break;
+        }
+        sceKernelDelayThread(50000);
+    }
+    for (int i = 0; i < 4; ++i) { // Update all buffers in rotation, required for input updates
+        sceKernelDelayThread(33333);
+        sceCtrlPeekBufferPositive(0, &input, 1);
+        vglSwapBuffers(GL_FALSE);
+    }
 }
 
 
@@ -193,7 +229,7 @@ static void engine_check_drop_lock()
             drop_lock_timer=0;
             if (!playfield_validate_tetromino_placement(&falling_tetromino, X, Y+1)) {
                 engine_place_tetromino_at_xy(X,Y);   // Lock the piece if it cannot proceed downward
-                graphics_draw_game();
+                graphics_core_draw_game();
             }
         }
     }
@@ -328,7 +364,7 @@ void engine_swap_held_tetromino_with_active(void)
 void engine_place_tetromino_at_xy(uint8_t x, uint8_t y)
 { //{{falling_{
     playfield_place_tetromino(&falling_tetromino, x, y);
-    uint8_t lines = playfield_clear_lines(graphics_playfield_animate_line_kill);
+    uint8_t lines = playfield_clear_lines(graphics_core_animate_line_kill);
     uint8_t new_level = scoring_add_line_clears(lines);
     if (new_level) {
         gravity_delay = (ENGINE_GRAVITY_INITIAL_DELAY_MICROSECONDS 

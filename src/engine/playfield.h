@@ -23,6 +23,7 @@ void playfield_clear_line(uint8_t Y);
 uint8_t playfield_clear_lines(void (*callback)(uint8_t));
 void playfield_set(const char* cells, const size_t size, const size_t offset);
 void playfield_set_cell(const uint8_t C, const uint8_t X, const uint8_t Y);
+void playfield_clear();
 
 
 #endif

@@ -1,11 +1,9 @@
 #include <stdint.h>
-#include <vitasdk.h>
 #include "core.h"
 #include "block.h"
 #include "playfield.h"
 #include "../engine/playfield.h"
 #include "../engine/tetromino.h"
-#include "../lib/shuffle.h"
 
 
 // 4 vertices for each face of 5 visible faces for each block in the playfield grid
