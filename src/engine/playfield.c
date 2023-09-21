@@ -111,7 +111,6 @@ void playfield_set_cell(const uint8_t C, const uint8_t X, const uint8_t Y)
 void playfield_clear()
 { //{{{
     for (uint8_t y = 0; y < PLAYFIELD_HEIGHT; ++y) {
-        bool row_occupied = true;
         for (uint8_t x = 0; x < PLAYFIELD_WIDTH; ++x) {
             PLAYFIELD[y][x] = TETROMINO_TYPE_NULL;
         }

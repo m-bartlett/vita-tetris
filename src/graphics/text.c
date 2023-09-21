@@ -104,6 +104,8 @@ static void load_texture()
                  /* format */ GL_RGB,
                  /* type */   GL_UNSIGNED_BYTE,
                  /* data */   rgb_pixels);
+
+    free(rgb_pixels);
 /*}}}*/ }
 
 
