@@ -2,7 +2,7 @@
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 __executed=$(($(return 2>/dev/null)$?))
-__prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[7m\]    \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+__prefix="(✜\[\e[1m\] ⴰ\[\e[0m\]\[\e[7m\]    \[\e[0m\]\[\e[1m\]ⴰ✤\[\e[0m\])"
 __prefix_formatted="${__prefix@P}"
 __log() { echo -e "$__prefix_formatted $@"; }
 
@@ -50,11 +50,11 @@ export VITASDKBIN="$VITASDK/bin"
 [[ "${VITASDK_PLATFORM:?}" == 'Vita3K' ]] && declare PLATFORM_IS_3K=1
 
 if [ -v PLATFORM_IS_3K ]; then
-    __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\] 3K \[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+    __prefix="(✜\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\] 3K \[\e[0m\]\[\e[1m\]ⴰ✤\[\e[0m\])"
     export VITA3K_DIR="$VITASDK/Vita3K"
     [[ "$PATH" =~ $VITA3K_DIR ]] || export PATH="$VITA3K_DIR:$PATH"
 else
-    __prefix="(\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\]vita\[\e[0m\]\[\e[1m\]ⴰ突\[\e[0m\])"
+    __prefix="(✜\[\e[1m\] ⴰ\[\e[0m\]\[\e[1;7m\]vita\[\e[0m\]\[\e[1m\]ⴰ✤\[\e[0m\])"
 fi
 __prefix_formatted="${__prefix@P}"
 

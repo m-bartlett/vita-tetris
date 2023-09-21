@@ -1,84 +1,53 @@
-## Setting up vitaGL with Vita3K Emulator Support (for rapid local development)
+# ViTetris
 
-### vitaShaRK (**vita** **Sha**ders **R**untime **K**ompiler)
+A Tetris-like homebrew game with 3D graphics for Playstation Vita.
 
-From the [vitaGL README](https://github.com/Rinnegatamante/vitaGL), relevant macros we need are:
+This is written completely from scratch in C using the [vitaGL library](https://github.com/Rinnegatamante/vitaGL/) by [Rinnegatamante](https://github.com/Rinnegatamante).
 
-> * `HAVE_VITA3K_SUPPORT=1` Disables several features in order to make vitaGL compatible with Vita3K. Requires vitaShaRK compiled with https://github.com/Rinnegatamante/vitaShaRK/blob/master/source/vitashark.c#L25 uncommented.
+## Install
 
-Accordingly, we must compile [`vitaShaRK`](https://github.com/Rinnegatamante/vitaShaRK) with [line 25 uncommented in vitashark.c](https://github.com/Rinnegatamante/vitaShaRK/blob/master/source/vitashark.c#L25) and install into your vita sdk environment. Specifically, the line should read:
+Simply download the [latest release .vpk](https://github.com/m-bartlett/vita-tetris/releases/latest/download/ViTetris.vpk) to your Vita and install by your preferred means. You should see a ViTetris bubble on the homescreen.
 
+![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/48f9ef5c-a773-46b8-bc4f-0562c92ca80d)
+
+
+
+## Building & Development
+
+Run the included script [./sdk/bootstrap-vita-sdk](./sdk/bootstrap-vita-sdk) which will automatically setup the Vita SDK for local builds. Run either `bootstrap-vita-sdk vita` or `bootstrap-vita-sdk Vita3K` to create isolated SDK environments configured to make builds for running on the Vita itself or the Vita3K emulator respectively. If you are running the script for the first time, you will see output indicating the progress of the SDK environment setup. If you run the scrip after the setting up the environment(s), an interactive subshell will be launch with the appropriate environment variables set. With the environment configured, it will be possible to run `make` in this repo's root to build the .vpk file.
+
+E.g.
 ```console
-$ sed -n '25p'  vitaShaRK/source/vitashark.c
-#define DISABLE_SHACCCG_EXTENSIONS // Uncomment this to make vitaShaRK not depend on SceShaccCgExt
+$ ./sdk/bootstrap-vita-sdk 3k
+(✜ⴰ[  ]ⴰ✤) Spawning environment in child shell.
+
+(✜ⴰ[3K]ⴰ✤)$ make
+arm-vita-eabi-gcc -g -Wl,-q -O2 -ftree-vectorize  -Werror -c -o src/lib/linalg.o src/lib/linalg.c
+    ...
+vita-elf-create ViTetris.elf ViTetris.velf
+vita-make-fself ViTetris.velf eboot.bin
+vita-mksfoex -s TITLE_ID=VGLTETRIS "ViTetris" param.sfo
+vita-pack-vpk \
+        --sfo=param.sfo \
+        --eboot=eboot.bin \
+        --add "sce_sys=sce_sys" \
+        --add "src/graphics/texture=texture" \
+        --add "src/graphics/shader=shader" \
+        ViTetris.vpk
 ```
 
-Note the lack of prefixing `//` comment indicator.
-
-If you want to, make a copy of your current `$VITASDK/arm-vita-eabi/lib/libvitashark.a` library before compiling and install with shacccg extensions diabled to restore later.
-
-Now, simply compile and install to your `$VITASDK`:
-```console
-$ cd vitaShaRK
-$ make && make install
-cp libvitashark.a /home/m/Projects/vita/vitetris/sdk/arm-vita-eabi/lib/
-cp source/vitashark.h /home/m/Projects/vita/vitetris/sdk/arm-vita-eabi/include/
-```
-
-### vitaGL
-
-With `libvitashark.a` compiled without shacccg extensions, proceed with compiling vitaGL with the
-`HAVE_VITA3K_SUPPORT=1` macro defined as mentioned in the quote from the [vitaGL README](https://github.com/Rinnegatamante/vitaGL) above.
-
-The Makefile at [vitaGL/Makefile](https://github.com/Rinnegatamante/vitaGL/blob/master/Makefile) is nice enough to allow providing this macro as an environment variable in:
-
-```Makefile
-ifeq ($(HAVE_VITA3K_SUPPORT),1)
-CFLAGS += -DHAVE_VITA3K_SUPPORT -DDISABLE_HW_ETC1
-endif
-```
-
-So simply run:
-```console
-$ git clone https://github.com/Rinnegatamante/vitaGL
-$ cd vitaGL
-$ make clean
-$ export HAVE_VITA3K_SUPPORT=1
-$ make && make install
-$ cd ..
-$ rm -rf vitaGL
-```
-
-### Testing in Vita3K
-
-As of writing I am using vitaGL v0.3 and vitaShaRK v1.4. Here are the md5 hashes of the compiled libraries as they are on my machine:
-
-```
-4736dd7770aace4fe92417c67ef7162e  $VITASDK/arm-vita-eabi/lib/libvitaGL.a
-4a283aba225e2f756ecb260442b61a49  $VITASDK/arm-vita-eabi/lib/libvitashark.a
-```
-
-With the libraries prepared, compile one of the vitaGL sampes (e.g. [glesgear](https://github.com/Rinnegatamante/vitaGL/tree/master/samples/glesgear)) and try opening the resulting .vpk in Vita3k.
-
-It may take up to a minute depending on your machine, but just observe the titlebar of the Vita3K window to watch its progress compiling shaders and then running the app, and you should be greeted with the classic gear demo complete with vita button input support:
-
-![image](https://user-images.githubusercontent.com/85039141/218005951-8900aa37-7092-4909-9774-f4e70ce0a9b5.png)
-
-If Vita3K can run the demo, your $VITASDK environment is correctly setup to support creating executables that are compatible with Vita3K.
+To build and run in the Vita3K emulator, run `Vita3K` which will be in `$PATH` after running `bootstrap-vita-sdk 3k` and configure it with the firmware and font packages as instructed (you will need to download these from the internet). Once Vita3K is configured with those files, run `make 3k` to either trigger an initial installation of the built `.vpk` file, or update the assets of an existing installation of ViTetris in the emulator.
 
 
-----
+## Disclaimer
 
-```C
-// Loading BMP image to use as texture
-SceUID fd = sceIoOpen("app0:texture.bmp", SCE_O_RDONLY, 0777);
-uint16_t w, h;
-sceIoLseek(fd, 0x12, SCE_SEEK_SET);
-sceIoRead(fd, &w, sizeof(uint16_t));
-sceIoLseek(fd, 0x16, SCE_SEEK_SET);
-sceIoRead(fd, &h, sizeof(uint16_t));
-sceIoLseek(fd, 0x26, SCE_SEEK_SET);
-uint8_t *buffer = (uint8_t*)malloc(w * h * 3);
-sceIoRead(fd, buffer, w * h * 3);
-sceIoClose(fd);
-```
+This homebrew application is in no way affiliated with The Tetris Company, or any other third parties.
+
+All product and company names are trademarks&trade; or registered trademarks&reg; of their respectve
+holders. Use of them does not imply any affiliation with or endorsement by them. Any content
+featured and shared here is done so without consent or knowledge of the copyright holders involved
+unless otherwise noted. Anything featured here does not represent the official works in any way and
+is made and distributed for free purely for educational, entertainment, and research purposes, which
+are protected under Section 107 of the Copyright Act.
+
+Please support official Tetris&reg; releases.

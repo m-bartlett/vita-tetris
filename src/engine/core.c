@@ -111,6 +111,7 @@ void engine_init()
     drop_lock_timer = 0;
     Y_hard_drop = -1;
     tetromino_swapped = false;
+    held_tetromino = TETROMINO_TYPE_NULL;
     bag_of_7_init(engine_rng_get_sample());
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     scoring_init();
