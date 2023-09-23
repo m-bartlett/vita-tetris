@@ -116,14 +116,16 @@ void engine_init()
     engine_spawn_tetromino(engine_pop_queued_tetromino());
     scoring_init();
     gravity_timer=timer_get_current_time();
-    engine_state = ENGINE_STATE_RUNNING;
-    gravity_timer=timer_get_current_time();
 /*}}}*/ }
 
 
 void engine_main_loop(void) {
     while(engine_state != ENGINE_STATE_EXIT) {
         switch(engine_state) {
+            case ENGINE_STATE_NULL:
+            case ENGINE_STATE_INIT:
+                engine_init();
+                engine_press_start_loop();
             case ENGINE_STATE_RUNNING:
                 engine_game_loop();
                 break;
@@ -134,12 +136,12 @@ void engine_main_loop(void) {
             case ENGINE_STATE_LOSE:
                 graphics_core_animate_game_over();
                 sceKernelDelayThread(1500000);
-                engine_replay_loop();
+                engine_state = ENGINE_STATE_INIT;
                 break;
             case ENGINE_STATE_WIN:
                 graphics_core_animate_game_win();
                 sceKernelDelayThread(1500000);
-                engine_replay_loop();
+                engine_state = ENGINE_STATE_INIT;
                 break;
         }
     }
@@ -195,7 +197,7 @@ void engine_pause_loop(void) {
 }
 
 
-void engine_replay_loop(void) {
+void engine_press_start_loop(void) {
     SceCtrlData input;
 
     for (int i = 0; i < 4; ++i) { // Update all buffers in rotation, required for input updates
@@ -203,8 +205,7 @@ void engine_replay_loop(void) {
         graphics_core_draw_HUD();
         const float height = 3;
         graphics_text_draw_ad_hoc("PRESS START",-18.5/3.f, height, 2.0);
-        graphics_text_draw_ad_hoc("TO", -4/3.f, height-2, 2.0);
-        graphics_text_draw_ad_hoc("PLAY AGAIN",-17/3.f, height-4, 2.0);
+        graphics_text_draw_ad_hoc("TO PLAY", -11.5/3.f, height-1.5, 2.0);
         sceCtrlPeekBufferPositive(0, &input, 1);
         vglSwapBuffers(GL_FALSE);
     }
