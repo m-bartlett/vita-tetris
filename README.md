@@ -29,6 +29,14 @@ This is written completely from scratch in C using the [vitaGL library](https://
 
 ## Install
 
+>**Note**
+><br/>This homebrew game, like any others that utilize the vitaGL library, require you to extract libshacccg.suprx on your Vita to compile shaders. Please see this guide for how to do this:<br/>
+>https://cimmerian.gitbook.io/vita-troubleshooting-guide/shader-compiler/extract-libshacccg.suprx
+>The simplest way as of writing to extract libshacccg.suprx is to install and run this app:<br/>
+>https://vitadb.rinnegatamante.it/#/info/997
+<br/>
+
+
 Simply download the [latest release .vpk](https://github.com/m-bartlett/vita-tetris/releases/latest/download/ViTetris.vpk) to your Vita and install by your preferred means. You should see a ViTetris bubble on the homescreen.
 
 ![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/48f9ef5c-a773-46b8-bc4f-0562c92ca80d)
