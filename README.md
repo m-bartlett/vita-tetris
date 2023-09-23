@@ -10,20 +10,22 @@ This is written completely from scratch in C using the [vitaGL library](https://
       width="250px"
       alt="Screenshot 1"
       title="Screenshot 1"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/91056539-ab7c-4868-a940-d249f4ff0a6e"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/62095254-35c7-4df2-b1b1-95537dabb9c6"
     >
     <img
       width="250px"
       alt="Screenshot 2"
       title="Screenshot 2"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/0bfa00f0-bf30-42ad-b09a-1337ec11ce01"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/806a3fc6-eba3-4b5b-b508-c15f051927cd"
     >
     <img
       width="250px"
       alt="Screenshot 3"
       title="Screenshot 3"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/d672dd5b-e750-40dd-986f-22c3ab2dd7c2"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/ef6853b9-fda0-43a3-94ae-6e6c090436c4"
+
     >
+
   </span>
 </p>
 
