@@ -27,6 +27,19 @@ This is written completely from scratch in C using the [vitaGL library](https://
   </span>
 </p>
 
+## Disclaimer
+This homebrew application is in no way affiliated with The Tetris Company, or any other third parties.
+
+All product and company names are trademarks&trade; or registered trademarks&reg; of their respectve
+holders. Use of them does not imply any affiliation with or endorsement by them. Any content
+featured and shared here is done so without consent or knowledge of the copyright holders involved
+unless otherwise noted. Anything featured here does not represent the official works in any way and
+is made and distributed for free purely for educational, entertainment, and research purposes, which
+are protected under Section 107 of the Copyright Act.
+
+Please support official Tetris&reg; releases.
+
+
 ## Install
 
 >**Note**
@@ -68,17 +81,3 @@ vita-pack-vpk \
 ```
 
 To build and run in the Vita3K emulator, run `Vita3K` which will be in `$PATH` after running `bootstrap-vita-sdk 3k` and configure it with the firmware and font packages as instructed (you will need to download these from the internet). Once Vita3K is configured with those files, run `make 3k` to either trigger an initial installation of the built `.vpk` file, or update the assets of an existing installation of ViTetris in the emulator.
-
-
-## Disclaimer
-
-This homebrew application is in no way affiliated with The Tetris Company, or any other third parties.
-
-All product and company names are trademarks&trade; or registered trademarks&reg; of their respectve
-holders. Use of them does not imply any affiliation with or endorsement by them. Any content
-featured and shared here is done so without consent or knowledge of the copyright holders involved
-unless otherwise noted. Anything featured here does not represent the official works in any way and
-is made and distributed for free purely for educational, entertainment, and research purposes, which
-are protected under Section 107 of the Copyright Act.
-
-Please support official Tetris&reg; releases.
