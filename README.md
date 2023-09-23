@@ -27,6 +27,9 @@ This is written completely from scratch in C using the [vitaGL library](https://
   </span>
 </p>
 
+### 🚀 See this project's [FuHEN Homebrew Contest 2023 submission](https://fuhen.homebrew-contest.com/submissions/52/)
+<br/>
+
 ## Disclaimer
 This homebrew application is in no way affiliated with The Tetris Company, or any other third parties.
 
