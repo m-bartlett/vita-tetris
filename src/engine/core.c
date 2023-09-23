@@ -66,8 +66,8 @@ static inline void engine_input_callback_analog_right(uint8_t x, uint8_t y) {
     enum _ {ANALOG_DEADZONE=10};
     float model_matrix[16] = {[0]=1, [5]=1, [10]=1, [15]=1};
     float _x=((float)x)-127.f, _y=((float)y)-127.f;
-    if (fabs(_x) < ANALOG_DEADZONE) _x = 0.f; else _x = M_PI/8*_x/127.f;
-    if (fabs(_y) < ANALOG_DEADZONE) _y = 0.f; else _y = M_PI/8*_y/127.f;
+    if (fabs(_x) < ANALOG_DEADZONE) _x = 0.f; else _x = M_PI/5*_x/127.f;
+    if (fabs(_y) < ANALOG_DEADZONE) _y = 0.f; else _y = M_PI/5*_y/127.f;
 
     translate(model_matrix, PLAYFIELD_WIDTH/2, PLAYFIELD_HEIGHT/2, 0);
     rotate(model_matrix, _x, 0, 1, 0);
