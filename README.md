@@ -57,7 +57,7 @@ Please support official Tetris&reg; releases.
 
 Simply download the [latest release .vpk](https://github.com/m-bartlett/vita-tetris/releases/latest/download/ViTetris.vpk) to your Vita and install by your preferred means. You should see a ViTetris bubble on the homescreen.
 
-![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/48f9ef5c-a773-46b8-bc4f-0562c92ca80d)
+![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/c1c51e02-d493-412a-b660-13d63aa36c94)
 
 
 
