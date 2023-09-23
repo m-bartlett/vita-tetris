@@ -85,4 +85,4 @@ vita-pack-vpk \
 
 To build and run in the Vita3K emulator, run `Vita3K` which will be in `$PATH` after running `bootstrap-vita-sdk 3k` and configure it with the firmware and font packages as instructed (you will need to download these from the internet). Once Vita3K is configured with those files, run `make 3k` to either trigger an initial installation of the built `.vpk` file, or update the assets of an existing installation of ViTetris in the emulator.
 
-For a more detailed explanation for what library configuration is necessary to support building for Vita3K, see [Setting Up the Vita SDK to Compile for the Vita3K Emulator](Setting Up the Vita SDK to Compile for the Vita3K Emulator.md).
+For a more detailed explanation for what library configuration is necessary to support building for Vita3K, see [Setting Up the Vita SDK to Compile for the Vita3K Emulator](Setting%20Up%20the%20Vita%20SDK%20to%20Compile%20for%20the%20Vita3K%20Emulator.md).
