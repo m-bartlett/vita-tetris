@@ -2,6 +2,7 @@
 #include "core.h"
 #include "block.h"
 #include "playfield.h"
+#include "../lib/shuffle.h"
 #include "../engine/playfield.h"
 #include "../engine/tetromino.h"
 
@@ -89,6 +90,6 @@ void graphics_playfield_animate_line_kill(uint8_t Y) {
         graphics_core_draw_HUD();
         graphics_playfield_draw();
         vglSwapBuffers(GL_FALSE);
-        sceKernelDelayThread(PLAYFIELD_LINE_KILL_ANIMATION_FRAME_DELAY_MICROSECONDS);
+        sceKernelDelayThread(GRAPHICS_LINE_KILL_ANIMATION_FRAME_DELAY_MICROSECONDS);
     }
 }

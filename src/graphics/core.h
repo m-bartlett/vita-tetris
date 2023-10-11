@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <vitaGL.h>
+#include <vitasdk.h>
 #include "../lib/linalg.h"
 #include "../engine/tetromino.h"
 
