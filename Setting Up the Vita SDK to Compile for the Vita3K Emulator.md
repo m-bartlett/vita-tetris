@@ -1,6 +1,6 @@
 ## Setting up vitaGL with Vita3K Emulator Support
 
-
+The included script [./sdk/bootstrap-vita-sdk](./sdk/bootstrap-vita-sdk) will handle the below setup steps for you automatically. However the configuration details are explained for any who are curious.
 
 ### vitaShaRK (**vita** **Sha**ders **R**untime **K**ompiler)
 

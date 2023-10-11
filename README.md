@@ -10,22 +10,27 @@ This is written completely from scratch in C using the [vitaGL library](https://
       width="250px"
       alt="Screenshot 1"
       title="Screenshot 1"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/91056539-ab7c-4868-a940-d249f4ff0a6e"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/62095254-35c7-4df2-b1b1-95537dabb9c6"
     >
     <img
       width="250px"
       alt="Screenshot 2"
       title="Screenshot 2"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/0bfa00f0-bf30-42ad-b09a-1337ec11ce01"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/806a3fc6-eba3-4b5b-b508-c15f051927cd"
     >
     <img
       width="250px"
       alt="Screenshot 3"
       title="Screenshot 3"
-      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/d672dd5b-e750-40dd-986f-22c3ab2dd7c2"
+      src="https://github.com/m-bartlett/vita-tetris/assets/85039141/ef6853b9-fda0-43a3-94ae-6e6c090436c4"
+
     >
+
   </span>
 </p>
+
+### 🚀 See this project's [FuHEN Homebrew Contest 2023 submission](https://fuhen.homebrew-contest.com/submissions/52/)
+<br/>
 
 ## Disclaimer
 This homebrew application is in no way affiliated with The Tetris Company, or any other third parties.
@@ -52,7 +57,7 @@ Please support official Tetris&reg; releases.
 
 Simply download the [latest release .vpk](https://github.com/m-bartlett/vita-tetris/releases/latest/download/ViTetris.vpk) to your Vita and install by your preferred means. You should see a ViTetris bubble on the homescreen.
 
-![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/48f9ef5c-a773-46b8-bc4f-0562c92ca80d)
+![ViTetris bubble on homescreen](https://github.com/m-bartlett/vita-tetris/assets/85039141/c1c51e02-d493-412a-b660-13d63aa36c94)
 
 
 
@@ -81,3 +86,5 @@ vita-pack-vpk \
 ```
 
 To build and run in the Vita3K emulator, run `Vita3K` which will be in `$PATH` after running `bootstrap-vita-sdk 3k` and configure it with the firmware and font packages as instructed (you will need to download these from the internet). Once Vita3K is configured with those files, run `make 3k` to either trigger an initial installation of the built `.vpk` file, or update the assets of an existing installation of ViTetris in the emulator.
+
+For a more detailed explanation for what library configuration is necessary to support building for Vita3K, see [Setting Up the Vita SDK to Compile for the Vita3K Emulator](Setting%20Up%20the%20Vita%20SDK%20to%20Compile%20for%20the%20Vita3K%20Emulator.md).
