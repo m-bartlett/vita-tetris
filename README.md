@@ -23,7 +23,6 @@ This is written completely from scratch in C using the [vitaGL library](https://
       alt="Screenshot 3"
       title="Screenshot 3"
       src="https://github.com/m-bartlett/vita-tetris/assets/85039141/ef6853b9-fda0-43a3-94ae-6e6c090436c4"
-
     >
 
   </span>
