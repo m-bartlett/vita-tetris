@@ -115,11 +115,13 @@ if ! [ -d "$VITASDK" ]; then
             local printlines=_nonring_printlines
 
             addline() {
-                lines[$lineidx]="$@"
-                ((++lineidx >= linecount)) && lineidx=0
-                ((++linesofar))
-                local lineheight=0 newlines=0
-                local width=$(tput cols)
+                local input="$@"  lineheight=0  newlines=0  width=$(tput cols)
+                while ((${#input})); do
+                    lines[$lineidx]="${input::width}"
+                    input="${input:width}"
+                    ((++lineidx >= linecount)) && lineidx=0
+                    ((++linesofar))
+               done
                 for ((i=0;i<linecount;i++)); do
                     newlines=$((${#lines[i]}/(width+1) + 1))
                     ((lineheight += newlines ))
@@ -158,7 +160,7 @@ if ! [ -d "$VITASDK" ]; then
         trap "rm -rf $SDKTMP&>/dev/null ; __error_cleanup" EXIT
         git clone --quiet --recursive --depth=1 https://github.com/vitasdk/vdpm "$SDKTMP"
         pushd "$SDKTMP" > /dev/null
-        ./bootstrap-vitasdk.sh |&  stream-window-of-lines
+        ./bootstrap-vitasdk.sh |& stream-window-of-lines
         rm /tmp/vdpm_install_* &>/dev/null ||:    # ignore vdpm update cache
         __log "\e[36mInstalling vita SDK modules\e[0m"
         ./install-all.sh 2>/dev/null |  stream-window-of-lines
@@ -195,7 +197,6 @@ if ! [ -d "$VITASDK" ]; then
             export HAVE_VITA3K_SUPPORT=1
             __log 'Compiling vitaGL with Vita3K support...'
         fi
-        # export HAVE_GLSL_SUPPORT=1
         make |&  stream-window-of-lines 5
         make install
         popd > /dev/null
