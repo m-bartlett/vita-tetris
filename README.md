@@ -43,7 +43,7 @@ Please support official Tetris&reg; releases.
 
 ## Install
 
->**Note**
+> [!NOTE]
 >This homebrew game, like any others that utilize the vitaGL library, require you to extract libshacccg.suprx on your Vita to compile shaders. Please see this guide for how to do this:<br/>
 ><https://cimmerian.gitbook.io/vita-troubleshooting-guide/shader-compiler/extract-libshacccg.suprx>
 ><br/>The simplest way as of writing to extract libshacccg.suprx is to install and run this app:<br/>
